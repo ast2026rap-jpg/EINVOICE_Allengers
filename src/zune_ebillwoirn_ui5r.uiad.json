@@ -1,0 +1,35 @@
+{
+  "formatVersion": "2",
+  "header": {
+    "description": "An SAP Fiori application.",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD",
+    "targetMappingTitle": "Ewaybill Without IRN"
+  },
+  "ui5AppDetails": {
+    "appId": "standewaybill"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_C47E4C58A6CB671764E1C24082B471E2FD7EA97C_TM",
+    "semanticObject": "ewaybillwoirn",
+    "action": "display",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_C47E4C58A6CB671764E1C24082B471E2FD7EA97C_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "Ewaybill Without IRN",
+        "subtitle": "EBWI"
+      }
+    }
+  ]
+}

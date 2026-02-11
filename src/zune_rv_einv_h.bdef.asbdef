@@ -1,0 +1,100 @@
+managed implementation in class zbp_une_rv_einv_h unique;
+strict ( 2 );
+with draft;
+
+
+define behavior for ZUNE_RV_EINV_H alias Einvoice
+persistent table zune_dt_einv_h
+draft table zune_dt_einv_hd
+lock master total etag Lastchangeat
+authorization master ( instance )
+etag master Lastchangeat
+{
+
+  create ( authorization : global );
+  update ( features : instance );
+  delete;
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+  field ( numbering : managed ) Sapid;
+  field ( readonly ) Sapid;
+  action ( features : instance ) GenerateEinvoice result [1] $self;
+  action ( features : instance ) CancelEInv result [1] $self;
+  action ( features : instance ) GenerateEWaybill result [1] $self;
+  action ( features : instance ) CancelEWaybill result [1] $self;
+  field ( features : instance ) Companycode, Billingdocnum, Fiscalyear, Documnenttype,
+  Businessplace,
+  Irnno,
+  Irnstatus,
+  Irnqr,
+  Acknowledgeno,
+  Acknowledgedate,
+  Irngeneratedate,
+  Irncanceldate,
+  Irnremarks,
+  irncanrsncode,
+  Ewaybillno,
+  Ewaybilldate,
+  Ewaybillvalidto,
+  Validityendsat,
+  Ewaybillstatus,
+  Ewaybillcanreasoncode,
+  Ewaybillcancelremarks,
+  Ewaybillcanceldate,
+  Transporterid,
+  Transportdocumentnumber,
+  Transportdocumentdate,
+  Transportdistanceinkm,
+  Vehiclenumber,
+  Vehicletype,
+  Modeoftransport,
+  Transportername,
+  Transportergstinnumber,
+  Postingjson,
+  Resposnsejson;
+
+  mapping for zune_dt_einv_h corresponding
+    {
+      Sapid                   = sapid;
+      Companycode             = companycode;
+      Billingdocnum           = billingdocnum;
+      Fiscalyear              = fiscalyear;
+      Documnenttype           = documnenttype;
+      Businessplace           = businessplace;
+      Irnno                   = irnno;
+      Irnstatus               = irnstatus;
+      Irnqr                   = irnqr;
+      Acknowledgeno           = acknowledgeno;
+      Acknowledgedate         = acknowledgedate;
+      Irngeneratedate         = irngeneratedate;
+      Irncanceldate           = irncanceldate;
+      Irnremarks              = irnremarks;
+      irncanrsncode           = irncanrsncode;
+      Ewaybillno              = ewaybillno;
+      Ewaybilldate            = ewaybilldate;
+      Ewaybillvalidto         = ewaybillvalidto;
+      Validityendsat          = validityendsat;
+      Ewaybillstatus          = ewaybillstatus;
+      Ewaybillcanreasoncode   = ewaybillcanreasoncode;
+      Ewaybillcancelremarks   = ewaybillcancelremarks;
+      Ewaybillcanceldate      = ewaybillcanceldate;
+      Transporterid           = transporterid;
+      Transportdocumentnumber = transportdocumentnumber;
+      Transportdocumentdate   = transportdocumentdate;
+      Transportdistanceinkm   = transportdistanceinkm;
+      Vehiclenumber           = vehiclenumber;
+      Vehicletype             = vehicletype;
+      Modeoftransport         = modeoftransport;
+      Transportername         = transportername;
+      Transportergstinnumber  = transportergstinnumber;
+      Postingjson             = postingjson;
+      Resposnsejson           = resposnsejson;
+      Createdby               = createdby;
+      Createdat               = createdat;
+      Lastchangedby           = lastchangedby;
+      Lastchangeat            = lastchangeat;
+    }
+}

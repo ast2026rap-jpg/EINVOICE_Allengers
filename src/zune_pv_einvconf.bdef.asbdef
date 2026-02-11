@@ -1,0 +1,15 @@
+projection;
+strict ( 2 );
+use draft;
+
+define behavior for ZUNE_PV_EINVCONF  alias einvoiceconfig
+{
+  use create;
+  use update;
+  use delete;
+  use action Activate;
+  use action Discard;
+  use action Edit;
+  use action Resume;
+  use action Prepare;
+}

@@ -1,0 +1,4 @@
+@EndUserText.label: 'Eway Bill-Service Defination'
+define service ZUNE_SD_EWAYBILL {
+  expose ZUNE_PV_EWAYBILL;
+}

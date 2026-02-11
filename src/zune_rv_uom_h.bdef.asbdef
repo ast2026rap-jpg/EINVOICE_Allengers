@@ -1,0 +1,42 @@
+managed implementation in class zbp_une_rv_uom_h unique;
+strict ( 2 );
+with draft;
+
+
+define behavior for ZUNE_RV_UOM_H alias UOMMaster
+persistent table zune_dt_uom_h
+draft table zune_dt_uom_hd
+lock master total etag Lastchangeat
+authorization master ( instance )
+etag master Lastchangeat
+{
+  create;
+  update;
+  delete;
+
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare
+  {
+  validation validateEntry;
+  }
+  field(numbering : managed) Sapid;
+  field ( readonly ) Sapid,Lastchangeat,LastChangedBy,CreatedAt,CreatedBy;
+  field( mandatory )Govunitcode,Govunitcodename,Sapunitcode;
+  validation validateEntry on save {create; field Govunitcode,Sapunitcode;}
+  //determine action ValidateMandatoryEntry{validation validateEntry;}
+
+  mapping for zune_dt_uom_h corresponding
+  {
+  Sapid =sapid;
+  Govunitcode = govunitcode;
+  Govunitcodename = govunitcodename;
+  Sapunitcode=sapunitcode;
+  Createdat=createdat;
+  Createdby=createdby;
+  Lastchangeat=lastchangeat;
+  Lastchangedby=lastchangedby;
+  }
+}

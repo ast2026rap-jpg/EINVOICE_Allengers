@@ -1,0 +1,54 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: {
+    typeName: 'EWB Sub Type-EWAY',
+    typeNamePlural: 'EWB Sub Types-EWAY',
+    title: {
+        type: #STANDARD,
+        label: 'EWB Sub Type-EWAY',
+        value: 'Ewbsubtype'
+    }
+}
+annotate entity ZUNE_PV_EWBST_H
+    with 
+{
+ @UI.facet: [{
+      id: 'ewbs',
+      purpose: #STANDARD,
+      position: 10 ,
+      label: 'EWB Sub Types-EWAY',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'ewbsd'
+  },
+  {
+      id: 'Addr',
+      purpose: #STANDARD,
+      position: 20 ,
+      label: 'Administrative',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'Addrd'
+  }]
+  
+  
+@UI.hidden: true
+  Sapid;
+  
+  @UI.fieldGroup: [{ qualifier: 'ewbsd',position: 10 }]
+  @UI.lineItem: [{ position: 10 }]
+  @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_EWAYSUBTYPE_VH' },useForValidation: true }]
+ Ewbsubtype;
+ 
+  @UI.fieldGroup: [{ qualifier: 'ewbsd',position: 20 }]
+  @UI.lineItem: [{ position: 20 }]
+  @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_EWAYTRANSTYPE_VH' },useForValidation: true }]
+ Ewbtrtype;
+  @UI.fieldGroup: [{ qualifier: 'Addrd',position: 10 }]
+ Createdby;
+  @UI.fieldGroup: [{ qualifier: 'Addrd',position: 20 }]
+ Createdat;
+  @UI.fieldGroup: [{ qualifier: 'Addrd',position: 30 }]
+ Lastchangedby;
+  @UI.fieldGroup: [{ qualifier: 'Addrd',position: 40 }]
+ Lastchangeat;
+    
+    
+}

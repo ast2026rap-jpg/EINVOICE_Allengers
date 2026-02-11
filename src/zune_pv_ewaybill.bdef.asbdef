@@ -1,0 +1,22 @@
+projection;
+strict ( 2 );
+use draft;
+
+define behavior for ZUNE_PV_EWAYBILL //alias <alias_name>
+{
+  use create;
+  use update;
+  use delete;
+
+ side effects {field Documentno affects field Supplytype,field Documenttype,field Refrenceno; }
+  use action GenerateEway;
+  use action CancelEway;
+  use action Activate;
+  use action Discard;
+  use action Edit;
+  use action Resume;
+  use action Prepare;
+  use action GenaratePdf;
+  use action GenerateEwayPartB;
+
+}

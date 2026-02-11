@@ -1,0 +1,4 @@
+@EndUserText.label: 'UOM Master-Service Defination'
+define service ZUNE_SD_UOM_H {
+  expose ZUNE_PV_UOM_H;
+}

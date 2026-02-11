@@ -1,0 +1,4 @@
+@EndUserText.label: 'EInvoice Confiquartion-Service Defination'
+define service ZUNE_SD_EINVCONF {
+  expose ZUNE_PV_EINVCONF;
+}

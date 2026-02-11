@@ -1,0 +1,179 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: {
+    typeName: 'EInvoice',
+    typeNamePlural: 'EInvoices',
+    title: {
+        type: #STANDARD,
+        label: 'EInvoice',
+        value: 'Billingdocnum'
+    }
+}
+annotate entity ZUNE_PV_EINV_H_UI
+    with 
+{
+@UI.facet: [{
+      id: 'gen',
+      purpose: #STANDARD,
+      position: 10 ,
+      label: 'General Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'gend'
+  },
+  {
+      id: 'einv',
+      purpose: #STANDARD,
+      position: 20 ,
+      label: 'EInvoice Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'einvd'
+  },
+  {
+      id: 'eway',
+      purpose: #STANDARD,
+      position: 30 ,
+      label: 'Eway Bill Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'ewayd'
+  },
+  
+  {
+      id: 'Addr',
+      purpose: #STANDARD,
+      position: 40 ,
+      label: 'Administrative Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'Addrd'
+  }]
+  
+  @UI.hidden: true
+   Sapid;
+   
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 10 }]
+    @UI.lineItem: [{ position: 10 }]
+  //{ type: #FOR_ACTION,dataAction: 'Eway',label:'Eway' }
+   @UI.identification: [
+    { type:#FOR_ACTION, dataAction:'GenerateEinvoice', label:'Generate E-Invoice', position:20 },
+    { type:#FOR_ACTION, dataAction:'CancelEInv', label:'Cancel E-Invoice', position:30 },
+    { type:#FOR_ACTION, dataAction:'CancelEWaybill', label:'Cancel E-Waybill', position:40 },
+        { type:#FOR_ACTION, dataAction:'GenerateEWaybill', label:'Generate E-WayBill', position:50 }  
+        
+    
+]
+   Companycode;
+        @UI.fieldGroup: [{ qualifier: 'gend',position: 20 }]
+  @UI.lineItem: [{ position: 20 }]
+  @Consumption.valueHelpDefinition: [{entity:{ element: 'BillingDocument',name: 'ZUNE_CDS_ENVBillingDoc' },useForValidation: true,additionalBinding: [{ element: 'BillingDocumentType',localElement: 'Documnenttype',usage: #RESULT },
+  { element: 'FiscalYear',localElement: 'Fiscalyear',usage: #RESULT },
+  { element: 'CompanyCode',localElement: 'Companycode',usage: #RESULT }] }]
+   Billingdocnum;
+  @UI.fieldGroup: [{ qualifier: 'gend',position: 30 }]
+  @UI.lineItem: [{ position: 30 }]
+    
+   Fiscalyear;
+        @UI.fieldGroup: [{ qualifier: 'gend',position: 40 }]
+  @UI.lineItem: [{ position: 40 }]
+   Documnenttype;
+        @UI.fieldGroup: [{ qualifier: 'gend',position: 50 }]
+  @UI.lineItem: [{ position: 50 }]
+   Businessplace;
+   
+  @UI.fieldGroup: [{ qualifier: 'gend',position: 60 }]
+  //@UI.lineItem: [{ position: 60 }]
+   Postingjson;
+  @UI.fieldGroup: [{ qualifier: 'gend',position: 70 }]
+  //@UI.lineItem: [{ position: 320 }]
+   Resposnsejson;
+        @UI.fieldGroup: [{ qualifier: 'einvd',position: 10 }]
+  @UI.lineItem: [{ position: 60 }]
+   Irnno;
+        @UI.fieldGroup: [{ qualifier: 'einvd',position: 20 }]
+  @UI.lineItem: [{ position: 70 }]
+   Irnstatus;
+        @UI.fieldGroup: [{ qualifier: 'einvd',position: 30 }]
+  @UI.lineItem: [{ position: 80 }]
+   Irnqr;
+        @UI.fieldGroup: [{ qualifier: 'einvd',position: 40 }]
+  @UI.lineItem: [{ position: 90 }]
+   Acknowledgeno;
+        @UI.fieldGroup: [{ qualifier: 'einvd',position: 50 }]
+  @UI.lineItem: [{ position: 100 }]
+   Acknowledgedate;
+        @UI.fieldGroup: [{ qualifier: 'einvd',position: 60 }]
+  @UI.lineItem: [{ position: 110 }]
+   Irngeneratedate;
+        @UI.fieldGroup: [{ qualifier: 'einvd',position: 70 }]
+  @UI.lineItem: [{ position: 120 }]
+   Irncanceldate;
+        @UI.fieldGroup: [{ qualifier: 'einvd',position: 80 }]
+  @UI.lineItem: [{ position: 130 }]
+   Irnremarks;
+   @UI.fieldGroup: [{ qualifier: 'einvd',position: 90 }]
+  @UI.lineItem: [{ position: 130 }]
+  @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_CANRESCODE_VH' },useForValidation: true }]
+ 
+   irncanrsncode;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 10 }]
+  @UI.lineItem: [{ position: 140 }]
+   Ewaybillno;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 20 }]
+  @UI.lineItem: [{ position: 150 }]
+   Ewaybilldate;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 30 }]
+  @UI.lineItem: [{ position: 160 }]
+   Ewaybillvalidto;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 40 }]
+  @UI.lineItem: [{ position: 170 }]
+   Validityendsat;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 50 }]
+  @UI.lineItem: [{ position: 180 }]
+   Ewaybillstatus;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 60 }]
+  @UI.lineItem: [{ position: 190 }]
+   Ewaybillcanreasoncode;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 70 }]
+  @UI.lineItem: [{ position: 200 }]
+   Ewaybillcancelremarks;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 80 }]
+  @UI.lineItem: [{ position: 210 }]
+   Ewaybillcanceldate;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 90 }]
+         @Consumption.valueHelpDefinition: [{entity:{ element: 'Supplier',name: 'ZUNE_CDS_SUPP_TRPTR_VH' },useForValidation: true ,additionalBinding: [{ element: 'SupplierFullName', localElement: 'Transportername',usage: #RESULT },
+      { element: 'GSTIN',localElement: 'Transportergstinnumber' }]}]
+  @UI.lineItem: [{ position: 220 }]
+   Transporterid;
+  @UI.fieldGroup: [{ qualifier: 'ewayd',position: 100 }]       
+  @UI.lineItem: [{ position: 230 }]
+   Transportdocumentnumber;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 110 }]
+  @UI.lineItem: [{ position: 240 }]
+   Transportdocumentdate;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 120 }]
+  @UI.lineItem: [{ position: 250 }]
+   Transportdistanceinkm;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 130 }]
+  @UI.lineItem: [{ position: 260 }]
+   Vehiclenumber;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 140 }]
+        @UI.lineItem: [{ position: 270 }]
+  @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_VEHTYP_EB_VH' },useForValidation: true }]
+   Vehicletype;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 150 }]
+  @UI.lineItem: [{ position: 280 }]
+   Modeoftransport;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 160 }]
+  @UI.lineItem: [{ position: 290 }]
+   Transportername;
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 170 }]
+  @UI.lineItem: [{ position: 300 }]
+   Transportergstinnumber;
+
+        @UI.fieldGroup: [{ qualifier: 'Addrd',position: 10 }]
+   Createdby;
+          @UI.fieldGroup: [{ qualifier: 'Addrd',position: 20 }]
+   Createdat;
+        @UI.fieldGroup: [{ qualifier: 'Addrd',position: 30 }]
+   Lastchangedby;
+        @UI.fieldGroup: [{ qualifier: 'Addrd',position: 40 }]
+   Lastchangeat;
+    
+}

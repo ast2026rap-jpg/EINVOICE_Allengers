@@ -1,0 +1,36 @@
+managed implementation in class zbp_une_rv_ewbst_h unique;
+strict ( 2 );
+with draft;
+
+
+define behavior for ZUNE_RV_EWBST_H alias EWBSubType
+persistent table zune_dt_ewbst_h
+draft table zune_dt_ewbst_hd
+lock master total etag Lastchangeat
+authorization master ( instance )
+etag master Lastchangeat
+{
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+
+  create(authorization : global);
+  update;
+  delete;
+  field(numbering : managed) Sapid;
+  field ( readonly ) Sapid,Lastchangeat,LastChangedBy,CreatedAt,CreatedBy;
+  field (mandatory) Ewbsubtype,Ewbtrtype;
+
+  mapping for zune_dt_ewbst_h corresponding
+  {
+  Sapid =sapid;
+  Createdat = createdat;
+  Createdby = createdby;
+  Ewbsubtype = ewbsubtype;
+  Ewbtrtype = ewbtrtype;
+  Lastchangeat =lastchangeat;
+  Lastchangedby = lastchangedby;
+  }
+}

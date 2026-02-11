@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_SIA7" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <SIA7>
+    <METADATA>
+     <NAME>ZUNE_BC_EWAYBILLWOIRN_0001</NAME>
+     <ABAP_LANGU_VERSION>5</ABAP_LANGU_VERSION>
+    </METADATA>
+    <CONTENT>
+     <BU_CATALOG_APP_ID>ZUNE_BC_EWAYBILLWOIRN_0001</BU_CATALOG_APP_ID>
+     <BU_CATALOG_ID>ZUNE_BC_EWAYBILLWOIRN</BU_CATALOG_ID>
+     <APP_ID>ZUNE_IAMAPP_EWAYBILLWOIRN_EXT</APP_ID>
+     <ROLE_CHANGE>A</ROLE_CHANGE>
+     <CATALOG_CHANGE>A</CATALOG_CHANGE>
+     <GROUP_CHANGE>A</GROUP_CHANGE>
+     <CHIP_ID>X-SAP-UI2-PAGE:X-SAP-UI2-CATALOGPAGE:ZUNE_BC_EWAYBILLWOIRN:3WO8ZLHC3VCB5ZNNDXK4X6IDZ</CHIP_ID>
+     <ABAP_LANGUAGE_VERSION>5</ABAP_LANGUAGE_VERSION>
+    </CONTENT>
+   </SIA7>
+  </asx:values>
+ </asx:abap>
+</abapGit>

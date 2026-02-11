@@ -1,0 +1,35 @@
+{
+  "formatVersion": "2",
+  "header": {
+    "description": "An SAP Fiori application.",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD",
+    "targetMappingTitle": "E-Invoice with EwayBill"
+  },
+  "ui5AppDetails": {
+    "appId": "zeinv.zmneinv"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_CAE1090AE7976E31F3D4660C28C27FC5C984BE10_TM",
+    "semanticObject": "zeinv",
+    "action": "Create",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_CAE1090AE7976E31F3D4660C28C27FC5C984BE10_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "E-Invoice with EwayBill",
+        "subtitle": "EIEB"
+      }
+    }
+  ]
+}

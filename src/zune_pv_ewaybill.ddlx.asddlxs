@@ -1,0 +1,170 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: {
+    typeName: 'Eway Bill',
+    typeNamePlural: 'Eway Bills',
+    title: {
+        type: #STANDARD,
+        label: 'Eway Bill',
+        value: 'Documentno'
+    }
+}
+
+annotate entity ZUNE_PV_EWAYBILL
+    with 
+{
+
+@UI.facet: [{
+      id: 'gen',
+      purpose: #STANDARD,
+      position: 10 ,
+      label: 'General Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'gend'
+  }
+  ,
+  {
+      id: 'trans',
+      purpose: #STANDARD,
+      position: 20 ,
+      label: 'Transport Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'transd'
+  },
+  
+  {
+      id: 'eway',
+      purpose: #STANDARD,
+      position: 30 ,
+      label: 'Eway Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'ewayd'
+  },
+  {
+      id: 'Addr',
+      purpose: #STANDARD,
+      position: 40 ,
+      label: 'Administrative Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'Addrd'
+  }]
+  
+    @UI.hidden: true
+    Sapid;
+    @UI.identification: [{ type:#FOR_ACTION,dataAction: 'GenerateEway',label: 'Generate Eway Bill',position: 10 },
+    { type:#FOR_ACTION,dataAction: 'GenerateEwayPartB',label: 'Generate Eway Bill Part B',position: 20 },
+    { type:#FOR_ACTION,dataAction: 'CancelEway',label: 'Cancel Eway Bill',position: 30 }
+    ,{ type:#FOR_ACTION,dataAction: 'GenaratePdf',label: 'Generate PDF ',position: 30 }]
+    
+     @UI.fieldGroup: [{ qualifier: 'gend',position: 10 }]
+     @UI.lineItem: [{ position: 10,importance: #HIGH  }]
+      @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_EWAYTRANSTYPE_VH' },useForValidation: true }]
+    Supplytype;
+     @UI.fieldGroup: [{ qualifier: 'gend',position: 20 }]
+      @UI.lineItem: [{ position: 20,importance: #HIGH  }]
+       @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_EWAYSUBTYPE_VH' },useForValidation: true }]
+    Subtype;
+     @UI.fieldGroup: [{ qualifier: 'gend',position: 30 }]
+    Subsupplytypedesc;
+     @UI.fieldGroup: [{ qualifier: 'gend',position: 40 }]
+      @UI.lineItem: [{ position: 30,importance: #HIGH  }]
+      @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_DocumentType' },useForValidation: true }]
+    Documenttype;
+     @UI.fieldGroup: [{ qualifier: 'gend',position: 50 }]
+      @UI.lineItem: [{ position: 40,importance: #HIGH  }]
+      @Consumption.valueHelpDefinition: [{entity:{ element: 'BillingDocument',name: 'ZUNE_CDS_BILL_DOC_NUM_VH' },useForValidation: true }]
+    Documentno;
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 55 }]
+     // @UI.lineItem: [{ position: 40,importance: #HIGH  }]
+    //  @Consumption.valueHelpDefinition: [{entity:{ element: 'BillingDocument',name: 'ZUNE_CDS_BILL_DOC_NUM_VH' },useForValidation: true }]
+    Refrenceno;
+     @UI.fieldGroup: [{ qualifier: 'gend',position: 60 }]
+      @UI.lineItem: [{ position: 50,importance: #HIGH  }]
+       @Consumption.valueHelpDefinition: [{entity:{ element: 'FiscalYear',name: 'ZUNE_CDS_FISCAL_YEAR_VH' },useForValidation: true ,additionalBinding: [{ element: 'CompanyCode',localElement: 'Comapnycode',usage: #FILTER_AND_RESULT }]}]
+      @UI.hidden: true  
+    Fiscalyera;
+     @UI.fieldGroup: [{ qualifier: 'gend',position: 70 }]
+      @UI.lineItem: [{ position: 60,importance: #HIGH  }]
+    @UI.hidden: true  
+    Comapnycode;
+     @UI.fieldGroup: [{ qualifier: 'gend',position: 80 }]
+      @UI.lineItem: [{ position: 70,importance: #HIGH  }]
+      @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_TRANSTYPE' },useForValidation: true }]
+    Transactiontype;
+     @UI.fieldGroup: [{ qualifier: 'ewayd',position: 10 }]
+      @UI.lineItem: [{ position: 80,importance: #HIGH  }]
+    Ewaybillno;
+      @UI.fieldGroup: [{ qualifier: 'ewayd',position: 20 }]
+       @UI.lineItem: [{ position: 90,importance: #HIGH  }]
+    Ewaybilldate;
+      @UI.fieldGroup: [{ qualifier: 'ewayd',position: 30 }]
+    Ewaybillexirationdate;
+      @UI.fieldGroup: [{ qualifier: 'ewayd',position: 40 }]
+       @UI.lineItem: [{ position: 100,importance: #HIGH  }]
+    Ewaycancellationdate;
+      @UI.fieldGroup: [{ qualifier: 'ewayd',position: 50 }]
+       @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_CANRESCODE_VH' },useForValidation: true }]
+    Cancellationresion;
+      @UI.fieldGroup: [{ qualifier: 'ewayd',position: 60 }]
+    Cancelremark;
+      @UI.fieldGroup: [{ qualifier: 'ewayd',position: 70 }]
+       @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_UPDRESCODE_VH' },useForValidation: true }]
+    Updatereason;
+      @UI.fieldGroup: [{ qualifier: 'ewayd',position: 80 }]
+    Updateremark;
+      @UI.fieldGroup: [{ qualifier: 'ewayd',position: 90 }]
+    Upadtedate;
+       
+     @UI.fieldGroup: [{ qualifier: 'ewayd',position: 100 }]
+     @UI.multiLineText: true
+    Postingbody;
+      @UI.fieldGroup: [{ qualifier: 'ewayd',position: 110 }]
+     @UI.multiLineText: true
+    Postingerrorresponse;
+    @UI.hidden: false
+     @UI.fieldGroup: [{ qualifier: 'ewayd',position: 120 }]
+    Ewaypdfattach;
+    @UI.hidden: true
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 130 }]
+    FileName;
+    @UI.hidden: true
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 140 }]
+    MimeType;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 10 }]
+      @Consumption.valueHelpDefinition: [{entity:{ element: 'Supplier',name: 'ZUNE_CDS_SUPP_TRPTR_VH' },useForValidation: true ,additionalBinding: [{ element: 'SupplierFullName', localElement: 'Transportername',usage: #RESULT },
+      { element: 'GSTIN',localElement: 'Transporterid' }]}]
+    Transportercode;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 20 }]
+    Transportername;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 30 }]
+    Transporterid;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 40 }]
+     @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_TRANSMODE' },useForValidation: true }]
+    Trmode;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 50 }]
+      @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_VEHTYPE_VH' },useForValidation: true }]
+    Vehicletype;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 60 }]
+    Vehicleno;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 70 }]
+    Distance;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 80 }]
+    Transporterdocno;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 90 }]
+    Transporterdocdate;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 100 }]
+      @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_GSTSTATECODE_VH' },useForValidation: true }]
+    Stategstcode;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 110 }]
+    Place;
+     @UI.fieldGroup: [{ qualifier: 'transd',position: 120 }]
+    Zipcode;
+     @UI.fieldGroup: [{ qualifier: 'Addrd',position: 10 }]
+    Createdby;
+      @UI.fieldGroup: [{ qualifier: 'Addrd',position: 20 }]
+    Createdat;
+      @UI.fieldGroup: [{ qualifier: 'Addrd',position: 30 }]
+    Lastchangedby;
+      @UI.fieldGroup: [{ qualifier: 'Addrd',position: 40 }]
+    Lastchangeat;
+    
+}

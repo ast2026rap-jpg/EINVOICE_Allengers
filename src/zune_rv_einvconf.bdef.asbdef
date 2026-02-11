@@ -1,0 +1,36 @@
+managed implementation in class zbp_une_rv_einvconf unique;
+strict ( 2 );
+with draft;
+
+
+define behavior for ZUNE_RV_EINVCONF alias einvoiceconfig
+persistent table zune_dt_einvconf
+draft table zune_dt_einvcond
+lock master total etag Lastchangeat
+authorization master ( instance )
+etag master Lastchangeat
+{
+  create ( authorization : global );
+  update;
+  delete;
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+  field(numbering : managed) Sapid;
+  field(readonly)Sapid,Createdby,Createdat,Lastchangeat,Lastchangedby;
+
+  mapping for zune_dt_einvconf corresponding {
+  Cleartaxauthtoken = cleartaxauthtoken;
+  Createdat=createdat;
+  Createdby=createdby;
+  Einvoicebaseurl=einvoicebaseurl;
+  Gstin=gstin;
+  Lastchangeat=lastchangeat;
+  Lastchangedby=lastchangedby;
+  Sapid=sapid;
+  Serviceprovider=serviceprovider;
+
+  }
+}

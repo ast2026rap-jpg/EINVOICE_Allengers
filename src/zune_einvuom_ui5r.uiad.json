@@ -1,0 +1,35 @@
+{
+  "formatVersion": "2",
+  "header": {
+    "description": "An SAP Fiori application.",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD",
+    "targetMappingTitle": "EInvoice UOM"
+  },
+  "ui5AppDetails": {
+    "appId": "einvuom"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_477099B6E2FFDECF6C3359EDDFC3B04DAC2A23DB_TM",
+    "semanticObject": "einvuom",
+    "action": "display",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_477099B6E2FFDECF6C3359EDDFC3B04DAC2A23DB_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "EInvoice UOM",
+        "subtitle": "EINVU"
+      }
+    }
+  ]
+}

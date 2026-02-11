@@ -1,0 +1,111 @@
+managed implementation in class zbp_une_rv_ewaybill unique;
+strict ( 2 );
+with draft;
+
+define behavior for ZUNE_RV_EWAYBILL alias Ewaybill
+persistent table zune_dt_ewaybill
+draft table zune_dt_ewaybild
+lock master total etag Lastchangeat
+authorization master ( instance )
+etag master Lastchangeat
+{
+  create ( authorization : global );
+  update(features : instance);
+  delete;
+  draft action Activate optimized;
+  draft action Discard;
+  draft action Edit;
+  draft action Resume;
+  draft determine action Prepare;
+  field(numbering : managed) Sapid;
+  field(readonly)Sapid,Createdby,Createdat,Lastchangeat,Lastchangedby;
+
+  determination onSelectBilling on modify {field Documentno;}
+
+  side effects {field Documentno affects field Supplytype,field Documenttype,field Refrenceno; }
+
+  action(features : instance) GenerateEway result [1] $self;
+  action(features : instance) GenerateEwayPartB result [1] $self;
+  action(features : instance) CancelEway result [1] $self;
+  action(features : instance) GenaratePdf result [1] $self;
+  field(features : instance )   Cancellationresion,
+
+  Cancelremark,
+  Comapnycode,
+  Distance ,
+  Documentno,
+  Documenttype,
+  Ewaybilldate,
+  Ewaybillexirationdate,
+  Ewaybillno,
+  Ewaycancellationdate,
+  Fiscalyera,
+  Place,
+  Stategstcode,
+  Subsupplytypedesc,
+  Subtype,
+  Supplytype,
+  Transactiontype,
+  Transportercode,
+  Transporterdocdate,
+  Transporterdocno,
+  Transporterid,
+  Transportername,
+  Trmode,
+  Upadtedate,
+  Updatereason,
+  Updateremark,
+  Vehicleno,
+  Vehicletype,
+  Zipcode,
+  Postingbody,
+  Postingerrorresponse,
+  Refrenceno,
+  Ewaypdfattach
+  ;
+
+  mapping for zune_dt_ewaybill corresponding {
+
+  Cancellationresion =cancellationresion;
+  Cancelremark = cancelremark;
+  Comapnycode = comapnycode;
+  Createdat = createdat;
+  Createdby = createdby;
+  Distance = distance;
+  Documentno = documentno;
+  Documenttype =documenttype;
+  Ewaybilldate = ewaybilldate;
+  Ewaybillexirationdate= ewaybillexirationdate;
+  Ewaybillno =ewaybillno;
+  Ewaycancellationdate=ewaycancellationdate;
+  Fiscalyera=fiscalyera;
+  Lastchangeat=lastchangeat;
+  Lastchangedby=lastchangedby;
+  Place=place;
+  Sapid=sapid;
+  Stategstcode=stategstcode;
+  Subsupplytypedesc=subsupplytypedesc;
+  Subtype=subtype;
+  Supplytype=supplytype;
+  Transactiontype=transactiontype;
+  Transportercode=transportercode;
+  Transporterdocdate=transporterdocdate;
+  Transporterdocno=transporterdocno;
+  Transporterid=transporterid;
+  Transportername=transportername;
+  Trmode=trmode;
+  Upadtedate=upadtedate;
+  Updatereason=updatereason;
+  Updateremark=updateremark;
+  Vehicleno=vehicleno;
+  Vehicletype=vehicletype;
+  Zipcode=zipcode;
+  Postingbody=postingbody;
+  Postingerrorresponse=postingerrorresponse;
+  Refrenceno = refrenceno;
+  Ewaypdfattach = ewaypdfattach;
+  MimeType = mimetype;
+  FileName = filename;
+  }
+
+}

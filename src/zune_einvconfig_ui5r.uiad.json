@@ -1,0 +1,35 @@
+{
+  "formatVersion": "2",
+  "header": {
+    "description": "An SAP Fiori application.",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "generalInformation": {
+    "appType": "ui5",
+    "catalogId": "SAP_TC_UI5_REPO_UIAD",
+    "targetMappingTitle": "EInvoice Confiquration"
+  },
+  "ui5AppDetails": {
+    "appId": "einvconfig"
+  },
+  "navigation": {
+    "targetMappingId": "UI5R_1AE5FD5B515CED3E1679D6EBF5BE3797AA23A1DA_TM",
+    "semanticObject": "einvconfig",
+    "action": "display",
+    "desktop": true,
+    "tablet": true,
+    "phone": true
+  },
+  "tiles": [
+    {
+      "id": "UI5R_1AE5FD5B515CED3E1679D6EBF5BE3797AA23A1DA_AL",
+      "tileType": "static",
+      "isDefault": true,
+      "standard": {
+        "title": "EInvoice Confiquration",
+        "subtitle": "EINVC"
+      }
+    }
+  ]
+}

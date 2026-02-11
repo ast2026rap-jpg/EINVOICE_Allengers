@@ -1,0 +1,4 @@
+@EndUserText.label: 'Billing Doc IRN EWAY-Service Defination API'
+define service ZUNE_SD_EINV_H_API {
+  expose ZUNE_PV_EINV_H;
+}

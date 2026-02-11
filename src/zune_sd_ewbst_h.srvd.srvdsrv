@@ -1,0 +1,4 @@
+@EndUserText.label: 'EWB Sub Type- Service Defination'
+define service ZUNE_SD_EWBST_H {
+  expose ZUNE_PV_EWBST_H;
+}

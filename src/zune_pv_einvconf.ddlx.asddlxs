@@ -1,0 +1,59 @@
+@Metadata.layer: #CORE
+@UI.headerInfo: {
+    typeName: 'EInvoice Confiquartion',
+    typeNamePlural: 'EInvoice Confiquartions',
+    title: {
+        type: #STANDARD,
+        label: 'EInvoice Confiquartion',
+        value: 'Serviceprovider'
+    }
+}
+annotate entity ZUNE_PV_EINVCONF
+    with 
+{
+@UI.facet: [{
+      id: 'gen',
+      purpose: #STANDARD,
+      position: 10 ,
+      label: 'General Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'gend'
+  }
+  ,
+  {
+      id: 'addr',
+      purpose: #STANDARD,
+      position: 20 ,
+      label: 'Administrative Data',
+      type: #FIELDGROUP_REFERENCE,
+      targetQualifier: 'addrd'
+  }]
+    @UI.hidden: true
+    Sapid;
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 10 }]
+    @UI.lineItem: [{ position: 10,importance: #HIGH  }]
+     @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_serviceProvider_VH' },useForValidation: true }]
+    Serviceprovider;
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 20 }]
+    @UI.lineItem: [{ position: 20,importance: #HIGH  }]
+    Einvoicebaseurl;
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 30 }]
+    @UI.lineItem: [{ position: 30,importance: #HIGH  }]
+    Cleartaxauthtoken;
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 40 }]
+    @UI.lineItem: [{ position: 40,importance: #HIGH  }]
+    Gstin;
+    @UI.fieldGroup: [{ qualifier: 'addrd',position: 10 }]
+    //@UI.lineItem: [{ position: 10,importance: #HIGH  }]
+    Createdby;
+    @UI.fieldGroup: [{ qualifier: 'addrd',position: 20 }]
+   // @UI.lineItem: [{ position: 10,importance: #HIGH  }]
+    Createdat;
+    @UI.fieldGroup: [{ qualifier: 'addrd',position: 30 }]
+  // @UI.lineItem: [{ position: 10,importance: #HIGH  }]
+    Lastchangedby;
+    @UI.fieldGroup: [{ qualifier: 'addrd',position: 40 }]
+  // @UI.lineItem: [{ position: 10,importance: #HIGH  }]
+    Lastchangeat;
+    
+}
