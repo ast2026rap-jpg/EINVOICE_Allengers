@@ -110,8 +110,7 @@ annotate entity ZUNE_PV_EINV_H_UI
    @UI.fieldGroup: [{ qualifier: 'einvd',position: 90 }]
   @UI.lineItem: [{ position: 130 }]
   @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_CANRESCODE_VH' },useForValidation: true }]
- 
-   irncanrsncode;
+    irncanrsncode;
         @UI.fieldGroup: [{ qualifier: 'ewayd',position: 10 }]
   @UI.lineItem: [{ position: 140 }]
    Ewaybillno;
@@ -129,6 +128,7 @@ annotate entity ZUNE_PV_EINV_H_UI
    Ewaybillstatus;
         @UI.fieldGroup: [{ qualifier: 'ewayd',position: 60 }]
   @UI.lineItem: [{ position: 190 }]
+  @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_CANRESCODE_VH' },useForValidation: true }]
    Ewaybillcanreasoncode;
         @UI.fieldGroup: [{ qualifier: 'ewayd',position: 70 }]
   @UI.lineItem: [{ position: 200 }]

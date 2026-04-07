@@ -92,7 +92,7 @@ TYPES tt_response TYPE STANDARD TABLE OF ty_response WITH EMPTY KEY.
         iv_transmode   TYPE string
         iv_transid     TYPE string
         iv_transname   TYPE string
-        iv_transdocdt  TYPE dats
+        iv_transdocdt  TYPE datn
         iv_transdocno  TYPE string
         iv_vehno       TYPE string
         iv_vehtype     TYPE string

@@ -214,6 +214,7 @@ CLASS lhc_einvoice IMPLEMENTATION.
       REPORTED DATA(ltt1_reported)
       FAILED   DATA(ltt1_failed).
     LOOP AT lt1_result ASSIGNING FIELD-SYMBOL(<ls_result>).
+    try.
       " Build JSON payload (example values, replace with entity data if needed)
       lv_json = lo_api->build_einvoice_payload_cancel(
                    iv_docnum = CONV string( <ls_result>-billingdocnum )
@@ -291,7 +292,6 @@ CLASS lhc_einvoice IMPLEMENTATION.
 *          ) TO reported-ewaybill.
         ENDLOOP.
 
-
         MODIFY ENTITIES OF zune_rv_einv_h IN LOCAL MODE
        ENTITY einvoice
        UPDATE FIELDS ( postingjson resposnsejson )
@@ -325,6 +325,10 @@ CLASS lhc_einvoice IMPLEMENTATION.
                           ( %tky = ls_result-%tky
                           %param-%data = ls_result-%data
                           ) ).
+   CATCH cx_root
+                  INTO DATA(lx_err).
+                  data(a) = ''.
+        endTRY.
 
     ENDLOOP.
 
@@ -561,6 +565,7 @@ CLASS lhc_einvoice IMPLEMENTATION.
           REPORTED DATA(ltt1_reported)
           FAILED   DATA(ltt1_failed).
         LOOP AT lt1_result ASSIGNING FIELD-SYMBOL(<ls_result>).
+
           lv_json = lo_api->build_ewaybill_payload_cancel( iv_cancelrmrk = CONV string( <ls_result>-ewaybillcancelremarks )
                                                           iv_cancelrsncode = CONV string( <ls_result>-ewaybillcanreasoncode )
                                                           iv_ewaybillno = CONV string( <ls_result>-ewaybillno )
