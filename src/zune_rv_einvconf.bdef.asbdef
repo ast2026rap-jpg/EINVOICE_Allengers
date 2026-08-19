@@ -31,6 +31,15 @@ etag master Lastchangeat
   Lastchangedby=lastchangedby;
   Sapid=sapid;
   Serviceprovider=serviceprovider;
+  addr1 = addr1;
+  companycode = companycode;
+  lglnm = lglnm;
+  loc = loc;
+  pin = pin;
+  plant = plant;
+  salesorganization = salesorganization;
+  stcd = stcd;
+
 
   }
 }

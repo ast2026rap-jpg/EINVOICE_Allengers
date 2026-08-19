@@ -9,20 +9,30 @@
 }
 define view entity ZUNE_CDS_SELLER_DET as 
 select from I_BillingDocument as a
-left outer join I_SalesOrganization as b on a.SalesOrganization=b.SalesOrganization and a.CompanyCode=b.CompanyCode
-left outer join I_Address_2 as c on b.AddressID=c.AddressID
+inner  join ZUNE_IV_EINVCONF as b on a.SalesOrganization=b.salesorganization and a.CompanyCode=b.companycode
 {
    key a.BillingDocument,
-    a.SalesOrganization,
-    case when a.SalesOrganization='80S0' then '04AAFCD5862R021' 
-         when a.SalesOrganization='90S0' then '04AAFCD5862R021'  else '' end as sellerGSTIN,
-    case when a.SalesOrganization='80S0' then 'H.B.NO.201, MUKANDPUR, DERABASSI, DISTT. MOHALI(PB.)' 
-         when a.SalesOrganization='90S0' then 'BHANKARPUR, MUBARKPUR ROAD DERABASSI, DISTT. MOHALI (PB) DERABASSI'  else '' end as lglnm,
-    case when a.SalesOrganization='80S0' then 'H.B.NO.201, MUKANDPUR, DERABASSI, DISTT. MOHALI(PB.)' 
-         when a.SalesOrganization='90S0' then 'BHANKARPUR, MUBARKPUR ROAD DERABASSI, DISTT. MOHALI (PB) DERABASSI'  else '' end as Addr1,
-   c.CityName as Loc,
-  '160017' as Pin, 
-     case when a.SalesOrganization='80S0' then '04' 
-         when a.SalesOrganization='90S0' then '04'  else '  ' end as Stcd     
+    b.salesorganization,
+   b.Gstin as sellerGSTIN,
+b.lglnm as lglnm,
+ b.addr1 as Addr1,
+  b.loc as Loc,
+  b.pin as Pin, 
+    b.stcd as Stcd     
          
 }
+union 
+select  from I_BillingDocumentItem as a
+inner join ZUNE_IV_EINVCONF as b on a.Plant=b.plant and a.CompanyCode=b.companycode
+{
+   key a.BillingDocument,
+    b.plant as SalesOrganization,
+   b.Gstin as sellerGSTIN,
+b.lglnm as lglnm,
+ b.addr1 as Addr1,
+  b.loc as Loc,
+  b.pin as Pin, 
+    b.stcd as Stcd     
+         
+} 
+

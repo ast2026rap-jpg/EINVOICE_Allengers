@@ -59,17 +59,17 @@ CLASS zune_cls_helper DEFINITION
     "--------------------------------------------------------
     " Part B E-Waybill Response Structure
     "--------------------------------------------------------
-    TYPES: BEGIN OF ty_error_details_partB,
+    TYPES: BEGIN OF ty_error_details_partb,
              error_code    TYPE string,
              error_message TYPE string,
              error_source  TYPE string,
-           END OF ty_error_details_partB.
-    TYPES: t_ty_error_details_partB TYPE STANDARD TABLE OF ty_error_details_partB WITH DEFAULT KEY.
+           END OF ty_error_details_partb.
+    TYPES: t_ty_error_details_partb TYPE STANDARD TABLE OF ty_error_details_partb WITH DEFAULT KEY.
     TYPES: BEGIN OF ty_ewaybill_partb_response,
-             EwbNumber      TYPE int8,
-             UpdatedDate        TYPE string,
-             ValidUpto          TYPE string,
-             errors             TYPE t_ty_error_details_partB,  "nested structure
+             ewbnumber   TYPE int8,
+             updateddate TYPE string,
+             validupto   TYPE string,
+             errors      TYPE t_ty_error_details_partb,  "nested structure
            END OF ty_ewaybill_partb_response.
 
 
@@ -197,7 +197,7 @@ CLASS zune_cls_helper DEFINITION
         cx_web_http_client_error
         cx_web_message_error
         cx_http_dest_provider_error.
-   " Parse cancel response JSON into ABAP structure
+    " Parse cancel response JSON into ABAP structure
     METHODS get_eway_partb_response
       IMPORTING
         iv_json            TYPE string
@@ -281,7 +281,9 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
 
   METHOD build_ewaybill_payload.
 
-    " --- Define structures for buyer, seller, shipping, dispatch, and items ---
+  "======================================================================
+    " Type definitions - buyer, seller, ship-to, dispatch-from, item details
+    "======================================================================
     TYPES: BEGIN OF ty_buyer_dtls,
              gstin TYPE string,
              lglnm TYPE string,
@@ -303,6 +305,7 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
            END OF ty_seller_dtls.
 
     TYPES: BEGIN OF ty_expship_dtls,
+             gstin TYPE string,
              lglnm TYPE string,
              addr1 TYPE string,
              addr2 TYPE string,
@@ -319,7 +322,8 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
              pin   TYPE i,
              stcd  TYPE string,
            END OF ty_disp_dtls.
-    " --- Item details (HSN, qty, tax, etc.) ---
+
+    " Item details (HSN, qty, tax, etc.)
     TYPES: BEGIN OF ty_item,
              prodname     TYPE string,
              proddesc     TYPE string,
@@ -338,8 +342,10 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
              othchrg      TYPE decfloat34,
              cesnonadvamt TYPE decfloat34,
            END OF ty_item.
+
     TYPES: ty_item_list TYPE STANDARD TABLE OF ty_item WITH EMPTY KEY.
-    " --- Main payload structure for eWaybill ---
+
+    " Main payload structure for e-Way Bill
     TYPES: BEGIN OF ty_ewaybill,
              documentnumber          TYPE string,
              documenttype            TYPE string,
@@ -350,8 +356,8 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
              transactiontype         TYPE string,
              buyerdtls               TYPE ty_buyer_dtls,
              sellerdtls              TYPE ty_seller_dtls,
-             expshipdtls             TYPE ty_expship_dtls,
-             dispdtls                TYPE ty_disp_dtls,
+             expshipdtls             TYPE REF TO ty_expship_dtls,
+             dispdtls                TYPE REF TO ty_disp_dtls,
              itemlist                TYPE ty_item_list,
              totalinvoiceamount      TYPE decfloat34,
              totalcgstamount         TYPE decfloat34,
@@ -372,14 +378,17 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
              vehtype                 TYPE string,
            END OF ty_ewaybill.
 
-    " --- Working data variables ---
-    DATA:lt_items  TYPE ty_item_list.
+    "----------------------------------------------------------------------
+    " Working data variables
+    "----------------------------------------------------------------------
+    DATA: lt_items TYPE ty_item_list.
 
-    DATA:ls_payload TYPE ty_ewaybill.
-    DATA: ls_buyer_dtls TYPE ty_buyer_dtls.
+    DATA: ls_payload      TYPE ty_ewaybill.
+    DATA: ls_buyer_dtls   TYPE ty_buyer_dtls.
     DATA: ls_seller_dtls  TYPE ty_seller_dtls.
+
     " Format billing document number to 10 characters with leading zeros
-    DATA:lv_docno TYPE string.
+    DATA: lv_docno TYPE string.
     lv_docno = iv_docnum.
 
     DATA(lv_len) = strlen( lv_docno ).
@@ -387,15 +396,24 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
       DATA(lv_missing) = 10 - lv_len.
       lv_docno = |{ repeat( val = '0' occ = lv_missing ) }{ lv_docno }|.
     ENDIF.
-    " --- Fetch billing header ---
-    SELECT SINGLE billingdocumentdate FROM i_billingdocument WITH PRIVILEGED ACCESS AS a WHERE a~billingdocument = @lv_docno INTO @DATA(lv_billingdocumentdate).
+
+    "----------------------------------------------------------------------
+    " Fetch billing header (billing document date)
+    "----------------------------------------------------------------------
+    SELECT SINGLE billingdocumentdate
+      FROM i_billingdocument WITH PRIVILEGED ACCESS AS a
+      WHERE a~billingdocument = @lv_docno
+      INTO @DATA(lv_billingdocumentdate).
+
     " Format billing document date into DD/MM/YYYY
     DATA: lv_date     TYPE d,   " YYYYMMDD
           lv_date_str TYPE string.
-    lv_date = lv_billingdocumentdate.
+    lv_date     = lv_billingdocumentdate.
     lv_date_str = |{ lv_date+6(2) }/{ lv_date+4(2) }/{ lv_date(4) }|.
 
-    " --- Populate header values ---
+    "----------------------------------------------------------------------
+    " Populate header values
+    "----------------------------------------------------------------------
     ls_payload-documentnumber    = iv_refrenceno.
     ls_payload-documenttype      = iv_documenttype.
     ls_payload-documentdate      = lv_date_str.
@@ -404,90 +422,200 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
     ls_payload-subsupplytypedesc = iv_subsupplytypedesc.
     ls_payload-transactiontype   = iv_transactiontype.
 
-    " --- Buyer details ---
+    "----------------------------------------------------------------------
+    " Buyer details
+    "----------------------------------------------------------------------
+    SELECT SINGLE * FROM zune_cds_billbuyer WITH PRIVILEGED ACCESS AS a
+      WHERE a~billingdocument = @lv_docno
+      INTO @DATA(buyeradd).
 
-    SELECT SINGLE * FROM zune_cds_billbuyer WITH PRIVILEGED ACCESS AS a WHERE a~billingdocument = @lv_docno INTO  @DATA(buyeradd).
-
-    ls_buyer_dtls-gstin = buyeradd-taxnumber3.
-    ls_buyer_dtls-lglnm = buyeradd-lglnm.
-    ls_buyer_dtls-trdnm = buyeradd-trdnm.
-    ls_buyer_dtls-addr1 = buyeradd-addr1.
+    IF buyeradd-taxnumber3 IS NOT INITIAL.
+      ls_buyer_dtls-gstin = buyeradd-taxnumber3.
+    ELSE.
+      ls_buyer_dtls-gstin = 'URP'.
+    ENDIF.
+    ls_buyer_dtls-lglnm = COND #( WHEN buyeradd-CareOfName IS NOT INITIAL THEN buyeradd-CareOfName ELSE  buyeradd-lglname ).
+    ls_buyer_dtls-trdnm = COND #( WHEN buyeradd-CareOfName IS NOT INITIAL THEN buyeradd-CareOfName ELSE  buyeradd-lglname ).
+*    ls_buyer_dtls-trdnm = buyeradd-trdnm.
+    ls_buyer_dtls-addr1 = buyeradd-addr1(100).
     ls_buyer_dtls-addr2 = buyeradd-addr2.
     ls_buyer_dtls-loc   = buyeradd-loc.
     ls_buyer_dtls-pin   = buyeradd-pin.
     ls_buyer_dtls-stcd  = buyeradd-stcd.
     ls_payload-buyerdtls = ls_buyer_dtls.
-    " --- Seller details ---
-    SELECT SINGLE * FROM zune_cds_seller_det WITH PRIVILEGED ACCESS AS a WHERE a~billingdocument = @lv_docno INTO  @DATA(selleradd).
+
+    "----------------------------------------------------------------------
+    " Seller details
+    "----------------------------------------------------------------------
+    SELECT SINGLE * FROM zune_cds_seller_det WITH PRIVILEGED ACCESS AS a
+      WHERE a~billingdocument = @lv_docno
+      INTO @DATA(selleradd).
+
     ls_seller_dtls-gstin = selleradd-sellergstin.
     ls_seller_dtls-lglnm = selleradd-lglnm.
     ls_seller_dtls-addr1 = selleradd-addr1.
     ls_seller_dtls-loc   = selleradd-loc.
     ls_seller_dtls-pin   = selleradd-pin.
     ls_seller_dtls-stcd  = selleradd-stcd.
-
     ls_payload-sellerdtls = ls_seller_dtls.
 
-    " --- Expected shipping details ---
+    "======================================================================
+    " ExpShipDtls / DispDtls inclusion is driven entirely by iv_transactiontype
+    " (GST "Transaction Type" domain):
+    "   1 = Regular                    -> neither ExpShipDtls nor DispDtls
+    "   2 = Bill To - Ship To          -> ExpShipDtls only
+    "   3 = Bill From - Dispatch From  -> DispDtls only
+    "   4 = Combination                -> both ExpShipDtls and DispDtls
+    "======================================================================
 
-    SELECT SINGLE
+    " Start clean - both nodes cleared; populated below only if required
+    CLEAR: ls_payload-expshipdtls, ls_payload-dispdtls.
 
-       *
+    IF iv_transactiontype = '2' OR iv_transactiontype = '4'.
+      "--------------------------------------------------------------
+      " Expected shipping details (Ship-To party / address lookup)
+      "--------------------------------------------------------------
+      SELECT SINGLE
+             b~addressid,
+             d~yy1_bpfullname_bus AS lglname,
+             e~bptaxnumber        AS shipgst
+        FROM i_billingdocumentitem AS a
+        LEFT OUTER JOIN i_billingdocumentpartner AS b
+          ON a~billingdocument = b~billingdocument
+        LEFT OUTER JOIN i_businesspartner AS d
+          ON b~customer = d~businesspartner
+        LEFT OUTER JOIN i_buspartaddrdepdnttaxnmbr AS e
+          ON d~businesspartner        = e~businesspartner
+         AND b~addressid              = e~businesspartneraddressid
+        WHERE a~billingdocument = @lv_docno
+          AND b~partnerfunction = 'WE'
+        INTO @DATA(addressid).
 
-      FROM  i_billingdocumentitem AS a
-      LEFT OUTER JOIN i_outbounddelivery AS b ON a~referencesddocument = b~outbounddelivery
-      LEFT OUTER JOIN i_outbounddeliverypartnertp  WITH PRIVILEGED ACCESS AS c ON c~outbounddelivery = b~outbounddelivery
-      LEFT OUTER JOIN i_customer AS d ON c~customer = d~customer
-      LEFT OUTER JOIN  i_address_2  AS e ON    c~addressid = e~addressid
-      LEFT OUTER JOIN zune_cds_stategst WITH PRIVILEGED ACCESS AS f ON f~value_low = d~region
-      WHERE a~billingdocument = @lv_docno  AND c~partnerfunction = 'WE'
-      INTO  @DATA(expshippingadd).
+      SELECT
+             f~text AS statecode,
+             a~addresseefullname AS lglname,
+             concat_with_space( concat_with_space( concat_with_space( concat_with_space( concat_with_space(
+               concat_with_space( concat_with_space( a~streetname, streetprefixname1, 1 ), streetprefixname2, 1 ),
+               streetsuffixname1, 1 ), streetsuffixname2, 1 ), housenumber, 1 ), building, 1 ), roomnumber, 1 ) AS addr1,
+             a~cityname AS location,
+             a~postalcode AS pin,
+              a~CareOfName
+        FROM i_organizationaddress WITH PRIVILEGED ACCESS AS a
+        LEFT OUTER JOIN zune_cds_stategst WITH PRIVILEGED ACCESS AS f
+          ON f~value_low = a~region
+        WHERE a~addressid = @addressid-addressid
+        INTO @DATA(expshippingadd).
+      ENDSELECT.
+     ls_payload-expshipdtls = NEW ty_expship_dtls( ).
+      ls_payload-expshipdtls->lglnm = COND #( WHEN expshippingadd-CareOfName IS NOT INITIAL THEN expshippingadd-CareOfName ELSE  addressid-lglname ).
+      ls_payload-expshipdtls->addr1 = expshippingadd-addr1(100).
+      ls_payload-expshipdtls->addr2 = ''.
+      ls_payload-expshipdtls->loc   = expshippingadd-location.
+      ls_payload-expshipdtls->pin   = expshippingadd-pin.
+      ls_payload-expshipdtls->stcd  = expshippingadd-statecode.
 
-    ls_payload-expshipdtls-lglnm = expshippingadd-d-bpcustomerfullname.
-    ls_payload-expshipdtls-addr1 = expshippingadd-d-streetname.
-    ls_payload-expshipdtls-addr2 = expshippingadd-d-bpaddrstreetname.
-    ls_payload-expshipdtls-loc   = expshippingadd-d-cityname.
-    ls_payload-expshipdtls-pin   = expshippingadd-d-postalcode.
-    ls_payload-expshipdtls-stcd  = expshippingadd-f-text.
+      IF addressid-shipgst IS INITIAL.
+        ls_payload-expshipdtls->gstin = 'URP'.
+      ELSE.
+        ls_payload-expshipdtls->gstin = addressid-shipgst.
+      ENDIF.
+    ENDIF.
+
+    IF iv_transactiontype = '3' OR iv_transactiontype = '4'.
+      "--------------------------------------------------------------
+      " Dispatch details (plant address)
+      "--------------------------------------------------------------
+          SELECT SINGLE
+             b~addressid,
+             d~yy1_bpfullname_bus AS lglname,
+             e~bptaxnumber        AS shipgst
+        FROM i_billingdocumentitem AS a
+        LEFT OUTER JOIN i_billingdocumentpartner AS b
+          ON a~billingdocument = b~billingdocument
+        LEFT OUTER JOIN i_businesspartner AS d
+          ON b~customer = d~businesspartner
+        LEFT OUTER JOIN i_buspartaddrdepdnttaxnmbr AS e
+          ON d~businesspartner        = e~businesspartner
+         AND b~addressid              = e~businesspartneraddressid
+        WHERE a~billingdocument = @lv_docno
+          AND b~partnerfunction = 'Z4'
+        INTO @DATA(addressiddispatch).
+
+      SELECT
+             f~text AS statecode,
+             a~addresseefullname AS lglname,
+             concat_with_space( concat_with_space( concat_with_space( concat_with_space( concat_with_space(
+               concat_with_space( concat_with_space( a~streetname, streetprefixname1, 1 ), streetprefixname2, 1 ),
+               streetsuffixname1, 1 ), streetsuffixname2, 1 ), housenumber, 1 ), building, 1 ), roomnumber, 1 ) AS addr1,
+             a~cityname AS location,
+             a~postalcode AS pin,
+              a~CareOfName
+        FROM i_organizationaddress WITH PRIVILEGED ACCESS AS a
+        LEFT OUTER JOIN zune_cds_stategst WITH PRIVILEGED ACCESS AS f
+          ON f~value_low = a~region
+        WHERE a~addressid = @addressiddispatch-addressid
+        INTO @DATA(dispatchadd).
+      ENDSELECT.
 
 
+      SELECT SINGLE plant
+        FROM i_billingdocumentitem WITH PRIVILEGED ACCESS AS a
+        WHERE a~billingdocument = @lv_docno
+        INTO @DATA(lv_plant).
 
-    " --- Dispatch details (plant address) ---
+      SELECT SINGLE *
+        FROM i_plant AS a
+        LEFT JOIN i_address_2 WITH PRIVILEGED ACCESS AS b
+          ON ( a~addressid = b~addressid )
+        LEFT OUTER JOIN zune_cds_stategst WITH PRIVILEGED ACCESS AS c
+          ON c~value_low = b~region
+        WHERE plant = @lv_plant
+        INTO @DATA(sellerplantaddress).
 
-    SELECT SINGLE plant FROM i_billingdocumentitem WITH PRIVILEGED ACCESS AS a WHERE a~billingdocument = @lv_docno INTO @DATA(lv_plant).
+     if addressiddispatch is not initial.
+        ls_payload-dispdtls = NEW ty_disp_dtls( ).
+      ls_payload-dispdtls->nm    = selleradd-lglnm.
+      ls_payload-dispdtls->addr1 = dispatchadd-addr1(100).
+      ls_payload-dispdtls->addr2 = ''.
+      ls_payload-dispdtls->loc   = dispatchadd-location.
+      ls_payload-dispdtls->pin   = dispatchadd-pin.
+      ls_payload-dispdtls->stcd  = dispatchadd-statecode.
 
-    SELECT SINGLE
-                  *
-    FROM i_plant AS a
-    LEFT JOIN i_address_2 WITH PRIVILEGED ACCESS AS b ON ( a~addressid = b~addressid )
-    LEFT OUTER JOIN zune_cds_stategst WITH PRIVILEGED ACCESS AS c ON c~value_low = b~region
-    WHERE plant = @lv_plant INTO @DATA(sellerplantaddress).
+     else.
+     ls_payload-dispdtls = NEW ty_disp_dtls( ).
+      ls_payload-dispdtls->nm    = sellerplantaddress-a-plantname.
+      ls_payload-dispdtls->addr1 = sellerplantaddress-b-streetname.
+      ls_payload-dispdtls->addr2 = sellerplantaddress-b-streetprefixname1.
+      ls_payload-dispdtls->loc   = sellerplantaddress-b-cityname.
+      ls_payload-dispdtls->pin   = sellerplantaddress-b-postalcode.
+      ls_payload-dispdtls->stcd  = sellerplantaddress-c-text.
+     endif.
+    ENDIF.
 
-    ls_payload-dispdtls-nm    = sellerplantaddress-a-plantname.
-    ls_payload-dispdtls-addr1 = sellerplantaddress-b-streetname.
-    ls_payload-dispdtls-addr2 = sellerplantaddress-b-streetprefixname1.
-    ls_payload-dispdtls-loc   = sellerplantaddress-b-streetprefixname2.
-    ls_payload-dispdtls-pin   = sellerplantaddress-b-postalcode.
-    ls_payload-dispdtls-stcd  = sellerplantaddress-c-text.
+    "----------------------------------------------------------------------
+    " Item level details
+    "----------------------------------------------------------------------
+    SELECT * FROM zune_cds_billingitemdetails WITH PRIVILEGED ACCESS AS a
+      WHERE a~billingdocument = @lv_docno
+        AND a~assamt > 0
+      INTO TABLE @DATA(billingdetails).
 
-    "-----Item level details----
-    SELECT * FROM zune_cds_billingitemdetails WITH PRIVILEGED ACCESS AS a WHERE a~billingdocument = @lv_docno INTO TABLE  @DATA(billingdetails).
     " Totals initialization
-    DATA: lv_totalinvoiceamount TYPE p LENGTH 16 DECIMALS 2.
-    DATA: lv_totalcgstamount TYPE p LENGTH 16 DECIMALS 2.
-    DATA: lv_totalsgstamount TYPE p LENGTH 16 DECIMALS 2.
-    DATA: lv_totaligstamount  TYPE p LENGTH 16 DECIMALS 2.
-    DATA: lv_totalcessamount  TYPE p LENGTH 16 DECIMALS 2.
-    DATA: lv_totalassessableamount  TYPE p LENGTH 16 DECIMALS 2.
-    DATA: lv_otheramount  TYPE p LENGTH 16 DECIMALS 2.
+    DATA: lv_totalinvoiceamount    TYPE p LENGTH 16 DECIMALS 2.
+    DATA: lv_totalcgstamount       TYPE p LENGTH 16 DECIMALS 2.
+    DATA: lv_totalsgstamount       TYPE p LENGTH 16 DECIMALS 2.
+    DATA: lv_totaligstamount       TYPE p LENGTH 16 DECIMALS 2.
+    DATA: lv_totalcessamount       TYPE p LENGTH 16 DECIMALS 2.
+    DATA: lv_totalassessableamount TYPE p LENGTH 16 DECIMALS 2.
+    DATA: lv_otheramount           TYPE p LENGTH 16 DECIMALS 2.
 
+    LOOP AT billingdetails ASSIGNING FIELD-SYMBOL(<lv_billingdetails>).
 
-    LOOP AT  billingdetails ASSIGNING FIELD-SYMBOL(<lv_billingdetails>).
+      DATA: ls_item TYPE ty_item.
 
-      DATA:ls_item    TYPE ty_item.
-      " Map billing item fields into eWaybill item
-      ls_item-prodname = <lv_billingdetails>-product.
-      ls_item-proddesc = <lv_billingdetails>-product.
+      " Map billing item fields into e-Way Bill item
+      ls_item-prodname = <lv_billingdetails>-ProductDescription(250).
+      ls_item-proddesc = <lv_billingdetails>-ProductDescription(250).
       ls_item-hsncd    = <lv_billingdetails>-hsn.
       ls_item-qty      = <lv_billingdetails>-billingquantity.
       ls_item-unit     = <lv_billingdetails>-govunitcode.
@@ -495,29 +623,36 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
       ls_item-cgstrt   = <lv_billingdetails>-cgstrate.
       ls_item-cgstamt  = <lv_billingdetails>-cgstamount.
       ls_item-sgstrt   = <lv_billingdetails>-sgstrate.
-      ls_item-sgstamt = <lv_billingdetails>-sgstamount.
+      ls_item-sgstamt  = <lv_billingdetails>-sgstamount.
       ls_item-igstrt   = <lv_billingdetails>-igstrate.
       ls_item-igstamt  = <lv_billingdetails>-igstamount.
-      ls_item-cesrt = <lv_billingdetails>-cessrate.
-      ls_item-cesamt = <lv_billingdetails>-cessamount.
-      ls_item-othchrg = ( <lv_billingdetails>-netamount - <lv_billingdetails>-assamt ) + <lv_billingdetails>-freightchargestax.
+      ls_item-cesrt    = <lv_billingdetails>-cessrate.
+      ls_item-cesamt   = <lv_billingdetails>-cessamount.
+      "ls_item-othchrg = ( <lv_billingdetails>-netamount - <lv_billingdetails>-assamt ) + <lv_billingdetails>-freightchargestax.
+      ls_item-othchrg      = <lv_billingdetails>-freightchargestax + <lv_billingdetails>-TCSAmount.
       ls_item-cesnonadvamt = 0.
 
       " Accumulate totals
       lv_totalassessableamount = lv_totalassessableamount + <lv_billingdetails>-assamt.
-      lv_totalcgstamount = lv_totalcgstamount + <lv_billingdetails>-cgstamount.
-      lv_totalsgstamount = lv_totalsgstamount + <lv_billingdetails>-sgstamount.
-      lv_totaligstamount = lv_totaligstamount + <lv_billingdetails>-igstamount.
-      lv_totalcessamount = lv_totalcessamount + <lv_billingdetails>-cessamount.
-      lv_otheramount = lv_otheramount + ( <lv_billingdetails>-netamount - <lv_billingdetails>-assamt ) + <lv_billingdetails>-freightchargestax.
+      lv_totalcgstamount       = lv_totalcgstamount + <lv_billingdetails>-cgstamount.
+      lv_totalsgstamount       = lv_totalsgstamount + <lv_billingdetails>-sgstamount.
+      lv_totaligstamount       = lv_totaligstamount + <lv_billingdetails>-igstamount.
+      lv_totalcessamount       = lv_totalcessamount + <lv_billingdetails>-cessamount.
+      "lv_otheramount = lv_otheramount + ( <lv_billingdetails>-netamount - <lv_billingdetails>-assamt ) + <lv_billingdetails>-freightchargestax.
+      lv_otheramount = lv_otheramount + <lv_billingdetails>-freightchargestax + <lv_billingdetails>-TCSAmount.
+
       APPEND ls_item TO lt_items.
     ENDLOOP.
+
     " Add items to payload
     ls_payload-itemlist = lt_items.
+
     " Compute invoice total
     lv_totalinvoiceamount = lv_totalassessableamount + lv_totalcgstamount + lv_totalsgstamount + lv_totaligstamount + lv_totalcessamount.
 
-    " --- Populate totals and transport details ---
+    "----------------------------------------------------------------------
+    " Populate totals and transport details
+    "----------------------------------------------------------------------
     ls_payload-totalinvoiceamount      = lv_totalinvoiceamount + lv_otheramount.
     ls_payload-totalcgstamount         = lv_totalcgstamount.
     ls_payload-totalsgstamount         = lv_totalsgstamount.
@@ -536,21 +671,20 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
     ls_payload-vehno                   = iv_vehno.
     ls_payload-vehtype                 = iv_vehtype.
 
-
-
-    " --- JSON serialization mappings (ABAP → JSON field names) ---
-
+    "----------------------------------------------------------------------
+    " JSON serialization mappings (ABAP → JSON field names)
+    "----------------------------------------------------------------------
     DATA: lt_name_map TYPE /ui2/cl_json=>name_mappings,
           lv_json     TYPE string.
 
     lt_name_map = VALUE #(
-      ( abap = 'DOCUMENTNUMBER'   json = 'DocumentNumber' )
-      ( abap = 'DOCUMENTTYPE'     json = 'DocumentType' )
-      ( abap = 'DOCUMENTDATE'     json = 'DocumentDate' )
-      ( abap = 'SUPPLYTYPE'       json = 'SupplyType' )
-      ( abap = 'SUBSUPPLYTYPE'    json = 'SubSupplyType' )
+      ( abap = 'DOCUMENTNUMBER'    json = 'DocumentNumber' )
+      ( abap = 'DOCUMENTTYPE'      json = 'DocumentType' )
+      ( abap = 'DOCUMENTDATE'      json = 'DocumentDate' )
+      ( abap = 'SUPPLYTYPE'        json = 'SupplyType' )
+      ( abap = 'SUBSUPPLYTYPE'     json = 'SubSupplyType' )
       ( abap = 'SUBSUPPLYTYPEDESC' json = 'SubSupplyTypeDesc' )
-      ( abap = 'TRANSACTIONTYPE'  json = 'TransactionType' )
+      ( abap = 'TRANSACTIONTYPE'   json = 'TransactionType' )
 
       " Buyer Details
       ( abap = 'BUYERDTLS' json = 'BuyerDtls' )
@@ -616,13 +750,11 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
 
     " Serialize with mapping
     rv_json = /ui2/cl_json=>serialize(
-                 data          = ls_payload
-                 name_mappings = lt_name_map
-                 pretty_name   = /ui2/cl_json=>pretty_mode-none ).
+                data          = ls_payload
+                name_mappings = lt_name_map
+                pretty_name   = /ui2/cl_json=>pretty_mode-none ).
 
-    " --- Serialize to JSON ---
-    "   rv_json = /ui2/cl_json=>serialize( data = ls_payload ).
-  ENDMETHOD.
+ ENDMETHOD.
 
 
   METHOD get_eway_response.
@@ -752,7 +884,7 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
 
   METHOD get_einv_config.
     " Local variable to hold configuration record
-    DATA: lv_einvoiceconfig TYPE zune_iv_einvconf.
+    " DATA: lv_einvoiceconfig TYPE zune_iv_einvconf.
 
     " Clear exporting parameters before use
     CLEAR: ev_baseurl, ev_authtoken, ev_gstin.
@@ -770,11 +902,11 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
     SELECT SINGLE sellergstin FROM zune_cds_seller_det WITH PRIVILEGED ACCESS AS a WHERE a~billingdocument = @lv_docno INTO  @DATA(sellergstin).
 
     " Read e-invoice configuration for service provider = '1' and seller GSTIN
-    SELECT SINGLE *
+    SELECT SINGLE einvoicebaseurl,cleartaxauthtoken,gstin
       FROM zune_iv_einvconf WITH PRIVILEGED ACCESS AS a
       WHERE a~serviceprovider = '1'
         AND a~gstin           = @sellergstin
-      INTO @lv_einvoiceconfig.
+      INTO @DATA(lv_einvoiceconfig).
     " If config found, return values to exporting parameters
     IF sy-subrc = 0.
       ev_baseurl   = lv_einvoiceconfig-einvoicebaseurl.
@@ -890,7 +1022,7 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
                                        WHEN iv_reasoncode = '4' THEN 'FIRST_TIME' ).
     ls_payload-reasonremark = iv_reasonremark.
     ls_payload-transdocno = iv_transdocno.
-     " Format billing document date into DD/MM/YYYY
+    " Format billing document date into DD/MM/YYYY
     DATA: lv_date     TYPE d,   " YYYYMMDD
           lv_date_str TYPE string.
     lv_date = iv_transdocdt.
@@ -995,7 +1127,7 @@ CLASS ZUNE_CLS_HELPER IMPLEMENTATION.
 
   METHOD get_eway_partb_response.
 
-   TRY.
+    TRY.
         /ui2/cl_json=>deserialize(
           EXPORTING
             json        = iv_json

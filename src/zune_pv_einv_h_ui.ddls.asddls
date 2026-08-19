@@ -22,6 +22,8 @@ define root view entity ZUNE_PV_EINV_H_UI provider contract transactional_query 
     Irnstatus,
      @EndUserText.label: 'IRN QR'
     Irnqr,
+     @EndUserText.label: 'IRN QR Extended'
+    Irnqrpartb,
      @EndUserText.label: 'Acknowledge No.'
     Acknowledgeno,
      @EndUserText.label: 'Acknowledge Date'
@@ -68,10 +70,41 @@ define root view entity ZUNE_PV_EINV_H_UI provider contract transactional_query 
     Transportername,
      @EndUserText.label: 'Transporter GSTIN No.'
     Transportergstinnumber,
+    @EndUserText.label: 'Transaction Type.'
+    transactiontype,
+    @EndUserText.label: 'Eway Bill Expiration Date'
+    ewaybillexirationdate,
+    @EndUserText.label: 'Reference No.'
+    refrenceno,
+    @EndUserText.label: 'Place'
+    place,
+    @EndUserText.label: 'State GST Code'
+    stategstcode,
+    @EndUserText.label: 'Country for Export'
+    countryforexp,
+    @EndUserText.label: 'Docket No.'
+    docketnumber,
+    @EndUserText.label: 'Update Reason'
+    updatereason,
+    @EndUserText.label: 'Update Remark'
+    updateremark,
+    @EndUserText.label: 'Updated Date'
+    upadtedate,
+         @Semantics.largeObject:{mimeType: 'MimeType',fileName: 'FileName',contentDispositionPreference: #INLINE}
+     @EndUserText.label: 'Eway Bill PDF'
+    Ewaypdfattach,
+     @EndUserText.label: 'File Name'
+    FileName,
+    @EndUserText.label: 'Port No.'
+     portno,
+    @EndUserText.label: 'Mime Type'
+    MimeType,
      @EndUserText.label: 'Posting Json'
     Postingjson,
      @EndUserText.label: 'Response Json'
     Resposnsejson,
+     @EndUserText.label: 'Supply Type'
+    supplytype,
      @EndUserText.label: 'Created By'
     @Semantics.user.createdBy: true
     Createdby,

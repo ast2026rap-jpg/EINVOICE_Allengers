@@ -41,6 +41,7 @@ TYPES: BEGIN OF ty_exp_shipdtls,
          loc   TYPE string,
          pin   TYPE i,
          stcd  TYPE string,
+         gstin Type string,
        END OF ty_exp_shipdtls.
 
 "----------------------------------------------------------------------
@@ -89,6 +90,7 @@ TYPES tt_response TYPE STANDARD TABLE OF ty_response WITH EMPTY KEY.
         iv_companycode TYPE string
         iv_irn         TYPE string
         iv_distance    TYPE string
+        iv_transactiontype TYPE string
         iv_transmode   TYPE string
         iv_transid     TYPE string
         iv_transname   TYPE string
@@ -96,7 +98,8 @@ TYPES tt_response TYPE STANDARD TABLE OF ty_response WITH EMPTY KEY.
         iv_transdocno  TYPE string
         iv_vehno       TYPE string
         iv_vehtype     TYPE string
-
+        iv_supplyType   Type string
+        iv_port         TYPE string
       RETURNING
         VALUE(rv_json) TYPE string.
 
@@ -267,60 +270,56 @@ CLASS ZUNE_CLS_HELPER_EINV_EWB IMPLEMENTATION.
 
 
   METHOD build_ewbirn_payload.
-* Start Disp Dtls Payload
 
-    TYPES: BEGIN OF ty_dispdtls,
+    "======================================================================
+    " E-Way Bill by IRN payload.
+    " NOTE: ShipDtls / DispDtls are intentionally NOT sent here for domestic
+    " supplies - the government e-way bill system picks up ship-to and
+    " dispatch-from details directly from the e-invoice (IRN) already
+    " generated for this document, so they must not be duplicated here.
+    "
+    " EXCEPTION - Export supplies (EXPWP / EXPWOP):
+    " For exports the buyer is a foreign party, so there is no real
+    " "ship-to" on the e-invoice for the EWB system to inherit. In this
+    " case the e-way bill payload must carry the PORT details as
+    " ExpShipDtls (GSTIN fixed to 'URP'), looked up via iv_port.
+    "======================================================================
+
+    " Export ship-to (port) details - only populated for export supplies
+    TYPES: BEGIN OF ty_expship_dtls,
+             gstin TYPE string,
              nm    TYPE string,
              addr1 TYPE string,
              addr2 TYPE string,
              loc   TYPE string,
              pin   TYPE string,
              stcd  TYPE string,
+           END OF ty_expship_dtls.
 
-           END OF ty_dispdtls.
-* End Dips Dtls Payload
-
-* Start Disp Dtls Payload
-
-    TYPES: BEGIN OF ty_expshipdtls,
-
-             nm    TYPE string,
-             addr1 TYPE string,
-             addr2 TYPE string,
-             loc   TYPE string,
-             pin   TYPE string,
-             stcd  TYPE string,
-
-
-           END OF ty_expshipdtls.
-* End Dips Dtls Payload
-
-* Start Header data Payload
+    " Header data payload (transporter / vehicle / IRN details + export ship-to)
     TYPES: BEGIN OF ty_hedtls,
-             irn         TYPE string,
-             distance    TYPE string,
-             transmode   TYPE string,
-             transid     TYPE string,
-             transname   TYPE string,
-             transdocdt  TYPE string,
-             transdocno  TYPE string,
-             vehno       TYPE string,
-             vehtype     TYPE string,
-             expshipdtls TYPE ty_expshipdtls,
-             dispdtls    TYPE ty_dispdtls,
-
+             irn             TYPE string,
+             distance        TYPE string,
+             transactiontype TYPE string,
+             transmode       TYPE string,
+             transid         TYPE string,
+             transname       TYPE string,
+             transdocdt      TYPE string,
+             transdocno      TYPE string,
+             vehno           TYPE string,
+             vehtype         TYPE string,
+             expshipdtls     TYPE ty_expship_dtls,
            END OF ty_hedtls.
 
     TYPES: ty_t_ty_hedtls TYPE STANDARD TABLE OF ty_hedtls WITH DEFAULT KEY.
 
-    DATA : ls_payload TYPE ty_t_ty_hedtls.
-    DATA: ls_shpdet TYPE ty_expshipdtls.
-    DATA: ls_dispdet TYPE ty_dispdtls.
+    DATA: ls_payload TYPE ty_t_ty_hedtls.
     DATA: lt_payload TYPE ty_hedtls.
 
-    "Format billing document number to 10 characters with leading zeros
-
-    DATA:lv_docno TYPE string.
+    "----------------------------------------------------------------------
+    " Format billing document number to 10 characters with leading zeros
+    "----------------------------------------------------------------------
+    DATA: lv_docno TYPE string.
     lv_docno = iv_docnum.
 
     DATA(lv_len) = strlen( lv_docno ).
@@ -329,104 +328,88 @@ CLASS ZUNE_CLS_HELPER_EINV_EWB IMPLEMENTATION.
       lv_docno = |{ repeat( val = '0' occ = lv_missing ) }{ lv_docno }|.
     ENDIF.
 
-
+    "----------------------------------------------------------------------
+    " Format transporter document date into DD/MM/YYYY (if supplied)
+    "----------------------------------------------------------------------
     DATA: lv_date     TYPE d,   " YYYYMMDD
           lv_date_str TYPE string.
     IF iv_transdocdt IS NOT INITIAL.
-      lv_date = iv_transdocdt.
+      lv_date     = iv_transdocdt.
       lv_date_str = |{ lv_date+6(2) }/{ lv_date+4(2) }/{ lv_date(4) }|.
-    ELSE .
+    ELSE.
       lv_date_str = ''.
     ENDIF.
 
-    lt_payload-irn = iv_irn.
-    lt_payload-distance = iv_distance.
-    lt_payload-transdocdt = lv_date_str.
-    lt_payload-transdocno = iv_transdocno.
-    lt_payload-transid = iv_transid.
-    lt_payload-transname = iv_transname.
-    lt_payload-vehno = iv_vehno.
-    lt_payload-vehtype = iv_vehtype.
-    lt_payload-transmode = iv_transmode.
+    "----------------------------------------------------------------------
+    " Populate header details
+    "----------------------------------------------------------------------
+    lt_payload-irn             = iv_irn.
+    lt_payload-distance        = iv_distance.
+    lt_payload-transdocdt      = lv_date_str.
+    lt_payload-transdocno      = iv_transdocno.
+    lt_payload-transid         = iv_transid.
+    lt_payload-transname       = iv_transname.
+    lt_payload-vehno           = iv_vehno.
+    lt_payload-vehtype         = iv_vehtype.
+    lt_payload-transmode       = iv_transmode.
+    lt_payload-transactiontype = iv_transactiontype.
 
+    "----------------------------------------------------------------------
+    " Export ship-to (port) details - export supplies only
+    "----------------------------------------------------------------------
+    CLEAR lt_payload-expshipdtls.
 
+    IF iv_supplytype = 'EXPWP' OR iv_supplytype = 'EXPWOP'.
+      SELECT SINGLE a~portgstpostalcode, a~portgststatecode, a~text
+        FROM zorn_portno_vh AS a
+        WHERE a~value_low = @iv_port
+        INTO @DATA(lt_portdata).
 
-    " --- Expected shipping details ---
-
-    SELECT SINGLE
-
-       *
-
-      FROM  i_billingdocumentitem AS a
-      LEFT OUTER JOIN i_outbounddelivery AS b ON a~referencesddocument = b~outbounddelivery
-      LEFT OUTER JOIN i_outbounddeliverypartnertp  WITH PRIVILEGED ACCESS AS c ON c~outbounddelivery = b~outbounddelivery
-      LEFT OUTER JOIN i_customer AS d ON c~customer = d~customer
-      LEFT OUTER JOIN  i_address_2  AS e ON    c~addressid = e~addressid
-      LEFT OUTER JOIN zune_cds_stategst WITH PRIVILEGED ACCESS AS f ON f~value_low = d~region
-      WHERE a~billingdocument = @lv_docno  AND c~partnerfunction = 'WE'
-      INTO  @DATA(expshippingadd).
-
-
-    lt_payload-expshipdtls-addr1 = expshippingadd-d-streetname.
-    lt_payload-expshipdtls-addr2 = expshippingadd-d-bpaddrstreetname.
-    lt_payload-expshipdtls-loc   = expshippingadd-d-cityname.
-    lt_payload-expshipdtls-pin   = expshippingadd-d-postalcode.
-    lt_payload-expshipdtls-stcd  = expshippingadd-f-text.
-
-    " --- Dispatch details (plant address) ---
-
-    SELECT SINGLE plant FROM i_billingdocumentitem WITH PRIVILEGED ACCESS AS a WHERE a~billingdocument = @iv_docnum INTO @DATA(lv_plant).
-
-    SELECT SINGLE
-                  *
-    FROM i_plant AS a
-    LEFT JOIN i_address_2 WITH PRIVILEGED ACCESS AS b ON ( a~addressid = b~addressid )
-    LEFT OUTER JOIN zune_cds_stategst WITH PRIVILEGED ACCESS AS c ON c~value_low = b~region
-    WHERE plant = @lv_plant INTO @DATA(sellerplantaddress).
-
-    lt_payload-dispdtls-nm    = sellerplantaddress-a-plantname.
-    lt_payload-dispdtls-addr1 = sellerplantaddress-b-streetname.
-    lt_payload-dispdtls-addr2 = sellerplantaddress-b-streetprefixname1.
-    lt_payload-dispdtls-loc   = sellerplantaddress-b-streetprefixname2.
-    lt_payload-dispdtls-pin   = sellerplantaddress-b-postalcode.
-    lt_payload-dispdtls-stcd  = sellerplantaddress-c-text.
+      lt_payload-expshipdtls-nm    = lt_portdata-text.
+      lt_payload-expshipdtls-addr1 = lt_portdata-text.
+      lt_payload-expshipdtls-addr2 = ''.
+      lt_payload-expshipdtls-loc   = lt_portdata-text.
+      lt_payload-expshipdtls-pin   = lt_portdata-portgstpostalcode.
+      lt_payload-expshipdtls-stcd  = lt_portdata-portgststatecode.
+      lt_payload-expshipdtls-gstin = 'URP'.
+    ENDIF.
 
     APPEND lt_payload TO ls_payload.
 
-    " end of dispatch details
-
-* End header Data Payload
-
-    " --- JSON serialization mappings (ABAP → JSON field names) ---
-
+    "----------------------------------------------------------------------
+    " JSON serialization mappings (ABAP → JSON field names)
+    "----------------------------------------------------------------------
     DATA: lt_name_map TYPE /ui2/cl_json=>name_mappings,
           lv_json     TYPE string.
 
     lt_name_map = VALUE #(
-   ( abap = 'IRN'            json = 'Irn' )
-   ( abap = 'DISTANCE'       json = 'Distance' )
-   ( abap = 'TRANSMODE'      json = 'TransMode' )
-   ( abap = 'TRANSID'        json = 'TransId' )
-   ( abap = 'TRANSNAME'      json = 'TransName' )
-   ( abap = 'TRANSDOCDT'     json = 'TransDocDt' )
-   ( abap = 'TRANSDOCNO'     json = 'TransDocNo' )
-   ( abap = 'VEHNO'          json = 'VehNo' )
-   ( abap = 'VEHTYPE'        json = 'VehType' )
-   ( abap = 'EXPSHIPDTLS'    json = 'ExpShipDtls' )
-   ( abap = 'DISPDTLS'       json = 'DispDtls' )
-   ( abap = 'NM'             json = 'Nm' )
-   ( abap = 'ADDR1'          json = 'Addr1' )
-   ( abap = 'ADDR2'          json = 'Addr2' )
-   ( abap = 'LOC'            json = 'Loc' )
-   ( abap = 'PIN'            json = 'Pin' )
-   ( abap = 'STCD'           json = 'Stcd' )
- ).
+      ( abap = 'IRN'             json = 'Irn' )
+      ( abap = 'DISTANCE'        json = 'Distance' )
+      ( abap = 'TRANSMODE'       json = 'TransMode' )
+      ( abap = 'TRANSID'         json = 'TransId' )
+      ( abap = 'TRANSNAME'       json = 'TransName' )
+      ( abap = 'TRANSDOCDT'      json = 'TransDocDt' )
+      ( abap = 'TRANSDOCNO'      json = 'TransDocNo' )
+      ( abap = 'TRANSACTIONTYPE' json = 'TransactionType' )
+      ( abap = 'VEHNO'           json = 'VehNo' )
+      ( abap = 'VEHTYPE'         json = 'VehType' )
+
+      " Export ship-to (port) details
+      ( abap = 'EXPSHIPDTLS' json = 'ExpShipDtls' )
+      ( abap = 'GSTIN'       json = 'Gstin' )
+      ( abap = 'NM'          json = 'Nm' )
+      ( abap = 'ADDR1'       json = 'Addr1' )
+      ( abap = 'ADDR2'       json = 'Addr2' )
+      ( abap = 'LOC'         json = 'Loc' )
+      ( abap = 'PIN'         json = 'Pin' )
+      ( abap = 'STCD'        json = 'Stcd' )
+    ).
 
     " Serialize with mapping
     rv_json = /ui2/cl_json=>serialize(
-                 data          = ls_payload
-                 name_mappings = lt_name_map
-                 pretty_name   = /ui2/cl_json=>pretty_mode-none ).
+                data          = ls_payload
+                name_mappings = lt_name_map
+                pretty_name   = /ui2/cl_json=>pretty_mode-none ).
 
 
 
@@ -510,7 +493,7 @@ CLASS ZUNE_CLS_HELPER_EINV_EWB IMPLEMENTATION.
   METHOD get_einv_config.
 
     " Local variable to hold configuration record
-    DATA: lv_einvoiceconfig TYPE zune_iv_einvconf.
+    "DATA: lv_einvoiceconfig TYPE zune_iv_einvconf.
 
     " Clear exporting parameters before use
     CLEAR: ev_baseurl, ev_authtoken, ev_gstin.
@@ -528,11 +511,11 @@ CLASS ZUNE_CLS_HELPER_EINV_EWB IMPLEMENTATION.
     SELECT SINGLE sellergstin FROM zune_cds_seller_det WITH PRIVILEGED ACCESS AS a WHERE a~billingdocument = @lv_docno INTO  @DATA(sellergstin).
 
     " Read e-invoice configuration for service provider = '1' and seller GSTIN
-    SELECT SINGLE *
+    SELECT SINGLE einvoicebaseurl,cleartaxauthtoken,gstin
       FROM zune_iv_einvconf WITH PRIVILEGED ACCESS AS a
       WHERE a~serviceprovider = '1'
         AND a~gstin           = @sellergstin
-      INTO @lv_einvoiceconfig.
+      INTO @Data(lv_einvoiceconfig).
     " If config found, return values to exporting parameters
     IF sy-subrc = 0.
       ev_baseurl   = lv_einvoiceconfig-einvoicebaseurl.

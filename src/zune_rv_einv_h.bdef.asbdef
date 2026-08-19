@@ -13,23 +13,34 @@ etag master Lastchangeat
 
   create ( authorization : global );
   update ( features : instance );
-  delete;
+  delete (precheck);
   draft action Activate optimized;
   draft action Discard;
   draft action Edit;
   draft action Resume;
-  draft determine action Prepare;
+  draft determine action Prepare
+  {
+  validation DuplicateEntry;
+  validation CheckExportInvoice;
+  validation CheckTransactionType;
+  }
   field ( numbering : managed ) Sapid;
   field ( readonly ) Sapid;
   action ( features : instance ) GenerateEinvoice result [1] $self;
   action ( features : instance ) CancelEInv result [1] $self;
   action ( features : instance ) GenerateEWaybill result [1] $self;
   action ( features : instance ) CancelEWaybill result [1] $self;
+  action ( features : instance ) GenerateEwayPartB result [1] $self;
+  action(features : instance) GenaratePdf result [1] $self;
+  validation DuplicateEntry on save {create;}
+  validation CheckExportInvoice on save {create;}
+  validation CheckTransactionType on save {create;}
   field ( features : instance ) Companycode, Billingdocnum, Fiscalyear, Documnenttype,
   Businessplace,
   Irnno,
   Irnstatus,
   Irnqr,
+  Irnqrpartb,
   Acknowledgeno,
   Acknowledgedate,
   Irngeneratedate,
@@ -54,7 +65,8 @@ etag master Lastchangeat
   Transportername,
   Transportergstinnumber,
   Postingjson,
-  Resposnsejson;
+  Resposnsejson,
+   Ewaypdfattach;
 
   mapping for zune_dt_einv_h corresponding
     {
@@ -67,6 +79,7 @@ etag master Lastchangeat
       Irnno                   = irnno;
       Irnstatus               = irnstatus;
       Irnqr                   = irnqr;
+      Irnqrpartb              = irnqrpartb;
       Acknowledgeno           = acknowledgeno;
       Acknowledgedate         = acknowledgedate;
       Irngeneratedate         = irngeneratedate;
@@ -92,9 +105,24 @@ etag master Lastchangeat
       Transportergstinnumber  = transportergstinnumber;
       Postingjson             = postingjson;
       Resposnsejson           = resposnsejson;
+      supplytype              = supplytype;
+      ewaybillexirationdate   = ewaybillexirationdate;
+      transactiontype = transactiontype;
+      refrenceno              = refrenceno;
+      place                   = place;
+      stategstcode            = stategstcode;
+      countryforexp = countryforexp;
+      docketnumber = docketnumber;
+      updatereason            = updatereason;
+      updateremark            = updateremark;
+      upadtedate              = upadtedate;
       Createdby               = createdby;
       Createdat               = createdat;
       Lastchangedby           = lastchangedby;
       Lastchangeat            = lastchangeat;
+      Ewaypdfattach = ewaypdfattach;
+  MimeType = mimetype;
+  FileName = filename;
+  portno = portno;
     }
 }

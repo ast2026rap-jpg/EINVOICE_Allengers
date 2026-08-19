@@ -71,7 +71,14 @@ annotate entity ZUNE_PV_EWAYBILL
     Documenttype;
      @UI.fieldGroup: [{ qualifier: 'gend',position: 50 }]
       @UI.lineItem: [{ position: 40,importance: #HIGH  }]
-      @Consumption.valueHelpDefinition: [{entity:{ element: 'BillingDocument',name: 'ZUNE_CDS_BILL_DOC_NUM_VH' },useForValidation: true }]
+      @Consumption.valueHelpDefinition: [{entity:{ element: 'BillingDocument',name: 'ZUNE_CDS_BILL_DOC_NUM_VH' },useForValidation: true,
+      additionalBinding: [
+  { element: 'TransportMode',localElement: 'Trmode',usage: #RESULT },
+   { element: 'TransporterName',localElement: 'Transportername',usage: #RESULT },
+    { element: 'VehicleNo',localElement: 'Vehicleno',usage: #RESULT },
+    { element: 'DocketNumber',localElement: 'Transporterdocno',usage: #RESULT }
+  ]
+       }]
     Documentno;
     @UI.fieldGroup: [{ qualifier: 'gend',position: 55 }]
      // @UI.lineItem: [{ position: 40,importance: #HIGH  }]

@@ -18,6 +18,12 @@ CLASS lhc_ewaybill DEFINITION INHERITING FROM cl_abap_behavior_handler.
       IMPORTING keys FOR ACTION ewaybill~genaratepdf RESULT result.
     METHODS generateewaypartb FOR MODIFY
       IMPORTING keys FOR ACTION ewaybill~generateewaypartb RESULT result.
+    METHODS duplicateentry FOR VALIDATE ON SAVE
+      IMPORTING keys FOR ewaybill~duplicateentry.
+    METHODS precheck_delete FOR PRECHECK
+      IMPORTING keys FOR DELETE ewaybill.
+    METHODS checktransactiontype FOR VALIDATE ON SAVE
+      IMPORTING keys FOR ewaybill~checktransactiontype.
 
 ENDCLASS.
 
@@ -90,14 +96,19 @@ CLASS lhc_ewaybill IMPLEMENTATION.
              ls_response-govt_response-ewbvalidtill+8(2).
 
           ENDIF.
-
-
+  Data(lv_distance) = ls_response-govt_response-alert.
+              REPLACE FIRST OCCURRENCE OF 'Distance between these two pincodes is '
+    IN lv_distance
+    WITH ''.
+        REPLACE FIRST OCCURRENCE OF ','
+    IN lv_distance
+    WITH ''.
 
 
           " Update entity fields
           MODIFY ENTITIES OF zune_rv_ewaybill IN LOCAL MODE
             ENTITY ewaybill
-            UPDATE FIELDS ( ewaybillno ewaybilldate ewaybillexirationdate postingerrorresponse postingbody )
+            UPDATE FIELDS ( ewaybillno ewaybilldate ewaybillexirationdate postingerrorresponse postingbody Distance )
             WITH VALUE #(
               FOR ls_keys IN keys (
                 %tky                  = ls_keys-%tky
@@ -107,7 +118,7 @@ CLASS lhc_ewaybill IMPLEMENTATION.
                 ewaybillexirationdate = lv_ewbvalidtill
                 postingerrorresponse  = ''
                 postingbody           = lv_json
-
+                Distance              = lv_distance
               )
             )
             REPORTED DATA(lt_reported)
@@ -708,6 +719,120 @@ CLASS lhc_ewaybill IMPLEMENTATION.
     ENDTRY.
 
 
+  ENDMETHOD.
+
+  METHOD DuplicateEntry.
+   " 1. Read buffer data for Billingdocnum
+  READ ENTITIES OF ZUNE_RV_EWAYBILL IN LOCAL MODE
+    ENTITY Ewaybill
+      FIELDS ( Documentno )
+      WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_result)
+    FAILED DATA(ltt_failed)
+    REPORTED DATA(ltt_reported).
+
+  IF lt_result IS INITIAL.
+    RETURN.
+  ENDIF.
+
+  " 2. Check database for existing duplicates
+  SELECT Documentno
+    FROM zune_dt_ewaybill  " <-- Replace with your actual database table
+    FOR ALL ENTRIES IN @lt_result
+    WHERE Documentno = @lt_result-Documentno
+    INTO TABLE @DATA(lt_existing_docs).
+
+  " 3. Validate each record being saved
+  LOOP AT lt_result INTO DATA(ls_einvoice).
+    APPEND VALUE #(
+      %tky        = ls_einvoice-%tky
+      %state_area = 'VALIDATE_BILLING_DOC'
+    ) TO reported-ewaybill.
+    IF ls_einvoice-Documentno IS INITIAL.
+      CONTINUE.
+    ENDIF.
+
+    " If the billing document already exists in DB
+    IF line_exists( lt_existing_docs[ Documentno = ls_einvoice-Documentno ] ).
+
+
+      APPEND VALUE #( %tky = ls_einvoice-%tky ) TO failed-ewaybill.
+
+      " Display error message highlighted on the Billingdocnum field in Fiori
+      APPEND VALUE #(
+        %tky        = ls_einvoice-%tky
+        %state_area = 'VALIDATE_BILLING_DOC'
+        %msg        = new_message_with_text(
+                        severity = if_abap_behv_message=>severity-error
+                        text     = |Billing Document { ls_einvoice-Documentno } already exists.|
+                      )
+        %element-Documentno = if_abap_behv=>mk-on
+      ) TO reported-ewaybill.
+
+    ENDIF.
+
+  ENDLOOP.
+  ENDMETHOD.
+
+  METHOD precheck_delete.
+   READ ENTITIES OF zune_rv_ewaybill IN LOCAL MODE
+     ENTITY Ewaybill
+    ALL FIELDS
+     WITH CORRESPONDING #( keys )
+     RESULT DATA(lt_data).
+
+    LOOP AT lt_data INTO DATA(ls_data).
+ if ls_data-Ewaybillno is not iniTIAL.
+        APPEND VALUE #(
+          %tky = ls_data-%tky
+        ) TO failed-ewaybill.
+
+        APPEND VALUE #(
+          %tky = ls_data-%tky
+          %msg = new_message(
+            id       = 'ZMSG'
+            number   = '001'
+            v1       = 'Deletion not allowed'
+            severity = if_abap_behv_message=>severity-error )
+        ) TO reported-ewaybill.
+endIF.
+
+
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD CheckTransactionType.
+   " 1. Read buffer data for Billingdocnum
+  READ ENTITIES OF zune_rv_ewaybill IN LOCAL MODE
+    ENTITY Ewaybill
+      FIELDS ( transactiontype )
+      WITH CORRESPONDING #( keys )
+    RESULT DATA(lt_result)
+    FAILED DATA(ltt_failed)
+    REPORTED DATA(ltt_reported).
+
+  IF lt_result IS INITIAL.
+    RETURN.
+  ENDIF.
+LOOP AT lt_result into data(ls_result).
+    IF ls_result-transactiontype is INITIAL.
+
+      " Block the save operation
+      APPEND VALUE #( %tky = ls_result-%tky ) TO failed-ewaybill.
+
+      APPEND VALUE #(
+        %tky        = ls_result-%tky
+        %state_area = 'VALIDATE_Transaction_type'
+        %msg        = new_message_with_text(
+                        severity = if_abap_behv_message=>severity-error
+                        text     = |Transaction Type is required|
+                      )
+        %element-transactiontype = if_abap_behv=>mk-on
+      ) TO reported-ewaybill.
+
+    ENDIF.
+
+ENDLOOP.
   ENDMETHOD.
 
 ENDCLASS.

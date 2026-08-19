@@ -11,17 +11,22 @@ etag master Lastchangeat
 {
   create ( authorization : global );
   update(features : instance);
-  delete;
+  delete(precheck);
   draft action Activate optimized;
   draft action Discard;
   draft action Edit;
   draft action Resume;
-  draft determine action Prepare;
+  draft determine action Prepare
+  {
+  validation DuplicateEntry;
+  validation CheckTransactionType;
+  }
   field(numbering : managed) Sapid;
   field(readonly)Sapid,Createdby,Createdat,Lastchangeat,Lastchangedby;
 
   determination onSelectBilling on modify {field Documentno;}
-
+validation DuplicateEntry on save {create;}
+validation CheckTransactionType on save {create;}
   side effects {field Documentno affects field Supplytype,field Documenttype,field Refrenceno; }
 
   action(features : instance) GenerateEway result [1] $self;

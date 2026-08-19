@@ -55,16 +55,24 @@ annotate entity ZUNE_PV_EINV_H_UI
     { type:#FOR_ACTION, dataAction:'GenerateEinvoice', label:'Generate E-Invoice', position:20 },
     { type:#FOR_ACTION, dataAction:'CancelEInv', label:'Cancel E-Invoice', position:30 },
     { type:#FOR_ACTION, dataAction:'CancelEWaybill', label:'Cancel E-Waybill', position:40 },
-        { type:#FOR_ACTION, dataAction:'GenerateEWaybill', label:'Generate E-WayBill', position:50 }  
+        { type:#FOR_ACTION, dataAction:'GenerateEWaybill', label:'Generate E-WayBill', position:50 },
+         { type:#FOR_ACTION, dataAction:'GenaratePdf', label:'Generate E-WayBill PDF', position:60 }    
         
     
 ]
    Companycode;
         @UI.fieldGroup: [{ qualifier: 'gend',position: 20 }]
   @UI.lineItem: [{ position: 20 }]
-  @Consumption.valueHelpDefinition: [{entity:{ element: 'BillingDocument',name: 'ZUNE_CDS_ENVBillingDoc' },useForValidation: true,additionalBinding: [{ element: 'BillingDocumentType',localElement: 'Documnenttype',usage: #RESULT },
+  @Consumption.valueHelpDefinition: [{entity:{ element: 'BillingDocument',name: 'ZUNE_CDS_ENVBillingDoc' }
+  ,useForValidation: true
+  ,additionalBinding: [{ element: 'BillingDocumentType',localElement: 'Documnenttype',usage: #RESULT },
   { element: 'FiscalYear',localElement: 'Fiscalyear',usage: #RESULT },
-  { element: 'CompanyCode',localElement: 'Companycode',usage: #RESULT }] }]
+  { element: 'CompanyCode',localElement: 'Companycode',usage: #RESULT },
+  { element: 'TransportMode',localElement: 'Modeoftransport',usage: #RESULT },
+   { element: 'TransporterName',localElement: 'Transportername',usage: #RESULT },
+    { element: 'VehicleNo',localElement: 'Vehiclenumber',usage: #RESULT },
+    { element: 'DocketNumber',localElement: 'Transportdocumentnumber',usage: #RESULT }
+  ] }]
    Billingdocnum;
   @UI.fieldGroup: [{ qualifier: 'gend',position: 30 }]
   @UI.lineItem: [{ position: 30 }]
@@ -83,6 +91,30 @@ annotate entity ZUNE_PV_EINV_H_UI
   @UI.fieldGroup: [{ qualifier: 'gend',position: 70 }]
   //@UI.lineItem: [{ position: 320 }]
    Resposnsejson;
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 80 }]
+   @UI.lineItem: [{ position: 130 }]
+   @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_SupplyType_VH' },useForValidation: true }]
+   supplytype;
+   
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 90 }]
+         @Consumption.valueHelpDefinition: [{entity:{ element: 'Country',name: 'I_COUNTRYVH' },useForValidation: true}]
+  @UI.lineItem: [{ position: 140 }]
+   countryforexp;
+   @UI.fieldGroup: [{ qualifier: 'gend',position: 100 }]
+   @UI.lineItem: [{ position: 150 }]
+   docketnumber;
+   
+   @UI.fieldGroup: [{ qualifier: 'gend',position: 110 }]
+   @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZORN_PORTNo_VH' },useForValidation: true}]
+   @UI.lineItem: [{ position: 150 }]
+   portno;
+   
+      
+   @UI.fieldGroup: [{ qualifier: 'gend',position: 120 }]
+      @UI.lineItem: [{ position: 180,importance: #HIGH  }]
+      @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_TRANSTYPE' },useForValidation: true }]
+    transactiontype;
+   
         @UI.fieldGroup: [{ qualifier: 'einvd',position: 10 }]
   @UI.lineItem: [{ position: 60 }]
    Irnno;
@@ -92,6 +124,9 @@ annotate entity ZUNE_PV_EINV_H_UI
         @UI.fieldGroup: [{ qualifier: 'einvd',position: 30 }]
   @UI.lineItem: [{ position: 80 }]
    Irnqr;
+           @UI.fieldGroup: [{ qualifier: 'einvd',position: 35 }]
+  @UI.lineItem: [{ position: 85 }]
+   Irnqrpartb;
         @UI.fieldGroup: [{ qualifier: 'einvd',position: 40 }]
   @UI.lineItem: [{ position: 90 }]
    Acknowledgeno;
@@ -159,6 +194,7 @@ annotate entity ZUNE_PV_EINV_H_UI
    Vehicletype;
         @UI.fieldGroup: [{ qualifier: 'ewayd',position: 150 }]
   @UI.lineItem: [{ position: 280 }]
+  @Consumption.valueHelpDefinition: [{entity:{ element: 'value_low',name: 'ZUNE_CDS_TRANSMODE' },useForValidation: true }]
    Modeoftransport;
         @UI.fieldGroup: [{ qualifier: 'ewayd',position: 160 }]
   @UI.lineItem: [{ position: 290 }]
@@ -167,6 +203,43 @@ annotate entity ZUNE_PV_EINV_H_UI
   @UI.lineItem: [{ position: 300 }]
    Transportergstinnumber;
 
+    
+        @UI.fieldGroup: [{ qualifier: 'ewayd', position: 190 }]
+    @UI.lineItem: [{ position: 310 }]
+    ewaybillexirationdate;
+
+    @UI.fieldGroup: [{ qualifier: 'ewayd', position: 200 }]
+    @UI.lineItem: [{ position: 320 }]
+    refrenceno;
+
+    @UI.fieldGroup: [{ qualifier: 'ewayd', position: 210 }]
+    @UI.lineItem: [{ position: 330 }]
+    place;
+
+    @UI.fieldGroup: [{ qualifier: 'ewayd', position: 220 }]
+    @UI.lineItem: [{ position: 340 }]
+    stategstcode;
+
+    @UI.fieldGroup: [{ qualifier: 'ewayd', position: 230 }]
+    @UI.lineItem: [{ position: 350 }]
+    updatereason;
+
+    @UI.fieldGroup: [{ qualifier: 'ewayd', position: 240 }]
+    @UI.lineItem: [{ position: 360 }]
+    updateremark;
+
+    @UI.fieldGroup: [{ qualifier: 'ewayd', position: 250 }]
+    @UI.lineItem: [{ position: 370 }]
+    upadtedate;
+      @UI.hidden: false
+     @UI.fieldGroup: [{ qualifier: 'ewayd',position: 260 }]
+    Ewaypdfattach;
+    @UI.hidden: true
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 270 }]
+    FileName;
+    @UI.hidden: true
+        @UI.fieldGroup: [{ qualifier: 'ewayd',position: 280 }]
+    MimeType;
         @UI.fieldGroup: [{ qualifier: 'Addrd',position: 10 }]
    Createdby;
           @UI.fieldGroup: [{ qualifier: 'Addrd',position: 20 }]

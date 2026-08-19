@@ -1,14 +1,8 @@
 @AbapCatalog.viewEnhancementCategory: [#NONE]
 @AccessControl.authorizationCheck: #NOT_REQUIRED
-@EndUserText.label: 'Billing Item Details'
+@EndUserText.label: 'BILLING ITEM Details Export'
 @Metadata.ignorePropagatedAnnotations: true
-@ObjectModel.usageType:{
-    serviceQuality: #X,
-    sizeCategory: #S,
-    dataClass: #MIXED
-}
-define view entity ZUNE_CDS_BILLINGITEMDETAILS
-  as select from    I_BillingDocument              as a
+define view entity ZUNE_CDS_BILLINGITEMDETAILS_EX as select from    I_BillingDocument              as a
     left outer join I_BillingDocumentItem          as b on  a.BillingDocument = b.BillingDocument
                                                         and a.CompanyCode     = b.CompanyCode
     left outer join I_ProductPlantBasic            as c on  b.Product = c.Product
@@ -67,8 +61,7 @@ define view entity ZUNE_CDS_BILLINGITEMDETAILS
                                                         and (
                                                            l.ConditionType        = 'DRD1'
                                                          )
-                                                         
-                                                         left outer join I_BillingDocumentItemPrcgElmnt as O on  b.BillingDocument     = O.BillingDocument
+     left outer join I_BillingDocumentItemPrcgElmnt as O on  b.BillingDocument     = O.BillingDocument
                                                         and b.BillingDocumentItem = O.BillingDocumentItem
                                                         and (
                                                            O.ConditionType        = 'JTC2'
@@ -84,33 +77,137 @@ define view entity ZUNE_CDS_BILLINGITEMDETAILS
        b.YY1_Productdetaildesc3_BDI as ProductDescription,
        c.ConsumptionTaxCtrlCode                                                                  as HSN,
        max(cast(b.BillingQuantity as abap.dec(18,2)))                                            as BillingQuantity,
-       (case when  d.Govunitcode = 'PAK' then 'PAC' else d.Govunitcode end)  as Govunitcode,
-       sum(cast( k.ConditionAmount as abap.dec(18,2)))  as AssAmt,
+       d.Govunitcode,
+       //sum(cast( k.ConditionAmount as abap.dec(18,2)))
+      
+       cast(currency_conversion(
+         amount             => cast(sum(cast( k.ConditionAmount as abap.dec(18,2))) as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       ) as  abap.dec(18,2))    
+         as AssAmt,
        max(cast(e.ConditionRateValue as abap.dec(6,3)))                                          as CGSTRate,
-       sum(cast(e.ConditionAmount as abap.dec(18,2)))                                            as CGSTAmount,
+       
+         
+      
+        cast(currency_conversion(
+         amount             => cast(sum(cast(e.ConditionAmount as abap.dec(18,2)))   as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       ) as  abap.dec(18,2))                                          
+        as CGSTAmount,
        max( cast(f.ConditionRateValue as abap.dec(6,3)))                                         as SGSTRate,
-       sum(cast(f.ConditionAmount as abap.dec(18,2)))                                            as SGSTAmount,
+                                                  
+          
+      
+       cast(currency_conversion(
+         amount             => cast(sum(cast(f.ConditionAmount as abap.dec(18,2)))   as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       ) as  abap.dec(18,2))   
+       as SGSTAmount,
        max(cast(g.ConditionRateValue  as abap.dec(6,3)))                                         as IGSTRate,
-       sum(cast(g.ConditionAmount as abap.dec(18,2)))                                            as IGSTAmount,
-       sum(cast(i.ConditionAmount as abap.dec(18,2)))                                            as discountAmount,
-       sum(cast(j.ConditionAmount as abap.dec(18,2)))                                            as FreightChargesTax,
-       sum(cast(O.ConditionAmount as abap.dec(18,2)))                                            as TCSAmount,
-       sum(cast( k.ConditionAmount as abap.dec(18,2)))   as NetAmount,
-       cast(sum(cast( k.ConditionAmount as abap.dec(18,2))) /  max(cast(b.BillingQuantity as abap.dec(18,2)))     as abap.dec(18,2))                             as Unitprice,
+       
+                                               
+      
+        cast(currency_conversion(
+         amount             => cast(sum(cast(g.ConditionAmount as abap.dec(18,2)))      as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       ) as  abap.dec(18,2))   
+        as IGSTAmount,
+                                                 
+         
+        cast(currency_conversion(
+         amount             => cast(sum(cast(i.ConditionAmount as abap.dec(18,2)))      as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       ) as  abap.dec(18,2))   
+        as discountAmount,
+      
+          
+       cast( currency_conversion(
+         amount             => cast( sum(cast(j.ConditionAmount as abap.dec(18,2)))      as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       ) as  abap.dec(18,2))                                          
+          as FreightChargesTax,
+                                                        
+               
+          
+        cast(currency_conversion(
+         amount             => cast( sum(cast(O.ConditionAmount as abap.dec(18,2)))       as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       )  as  abap.dec(18,2))   
+               as TCSAmount, 
+       
+        
+       cast(currency_conversion(
+         amount             => cast( sum(cast( k.ConditionAmount as abap.dec(18,2)))        as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       ) as  abap.dec(18,2))       
+       as NetAmount,
+                
+       
+      cast( currency_conversion(
+         amount             => cast( sum(cast( k.ConditionAmount as abap.dec(18,2))) /  max(cast(b.BillingQuantity as abap.dec(18,2)))      as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       )  as  abap.dec(18,2))  
+                                as Unitprice,
  
        0                                                                                         as CessRate,
        0                                                                                         as CessAmount,
-       cast(sum(coalesce(cast(h.ConditionAmount as abap.dec(18,2) ),0)) + sum(coalesce(cast(h1.ConditionAmount as abap.dec(18,2) ),0))     as abap.dec(18,2))                                   as OtherCharges,
+                                    
+      
+       cast( currency_conversion(
+         amount             => cast( sum(coalesce(cast(h.ConditionAmount as abap.dec(18,2) ),0)) + sum(coalesce(cast(h1.ConditionAmount as abap.dec(18,2) ),0))        as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       ) as  abap.dec(18,2))  
+         as OtherCharges,
  
-       sum(cast(l.ConditionAmount as abap.dec(18,2)))                                            as rounding
+                                        
+      
+      cast( currency_conversion(
+         amount             => cast( sum(cast(l.ConditionAmount as abap.dec(18,2)))         as abap.curr(15,2)),
+         source_currency    => a.TransactionCurrency,
+         target_currency    => cast('INR' as abap.cuky),
+         exchange_rate_date => a.BillingDocumentDate,
+         exchange_rate_type => 'M'
+       ) as  abap.dec(18,2))  
+           as rounding
  
  
  
  
  
 }
-where (g.ConditionAmount > 0 or f.ConditionAmount > 0 or e.ConditionAmount > 0)
-and b.BillingDocumentItemText <> 'Down Payment Settlement'
+where 
+b.BillingDocumentItemText <> 'Down Payment Settlement'
+//(g.ConditionAmount > 0 or f.ConditionAmount > 0 or e.ConditionAmount > 0)
 group by
   a.BillingDocument,
   b.Product,
@@ -118,4 +215,6 @@ group by
   b.YY1_Productdetaildesc3_BDI,
   b.BillingDocumentItem,
   c.ConsumptionTaxCtrlCode,
-  d.Govunitcode
+  d.Govunitcode,
+  a.TransactionCurrency,
+  a.BillingDocumentDate

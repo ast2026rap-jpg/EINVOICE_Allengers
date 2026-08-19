@@ -17,4 +17,5 @@ define behavior for ZUNE_PV_EINV_H_UI //alias <alias_name>
   use action Prepare;
   use action CancelEInv;
   use action CancelEWaybill;
+  use action GenaratePdf;
 }

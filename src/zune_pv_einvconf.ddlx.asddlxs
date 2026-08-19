@@ -43,6 +43,34 @@ annotate entity ZUNE_PV_EINVCONF
     @UI.fieldGroup: [{ qualifier: 'gend',position: 40 }]
     @UI.lineItem: [{ position: 40,importance: #HIGH  }]
     Gstin;
+      @UI.fieldGroup: [{ qualifier: 'gend',position: 50 }]
+    @UI.lineItem: [{ position: 50,importance: #HIGH  }]
+    @Consumption.valueHelpDefinition: [{ entity:{element: 'SalesOrganization',name: 'I_SalesOrganization' } }]
+     salesorganization;
+       @UI.fieldGroup: [{ qualifier: 'gend',position: 60 }]
+    @UI.lineItem: [{ position: 60,importance: #HIGH  }]
+     @Consumption.valueHelpDefinition: [{ entity:{element: 'CompanyCode',name: 'I_CompanyCode' } }]
+  companycode;
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 70 }]
+    @UI.lineItem: [{ position: 70,importance: #HIGH  }]
+     @Consumption.valueHelpDefinition: [{ entity:{element: 'Plant',name: 'I_Plant' } }]
+ plant;
+   @UI.fieldGroup: [{ qualifier: 'gend',position: 80 }]
+    @UI.lineItem: [{ position: 80,importance: #HIGH  }]
+ lglnm;
+   @UI.fieldGroup: [{ qualifier: 'gend',position: 90 }]
+    @UI.lineItem: [{ position: 90,importance: #HIGH  }]
+  addr1;
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 100 }]
+    @UI.lineItem: [{ position: 100,importance: #HIGH  }]
+  loc;
+    @UI.fieldGroup: [{ qualifier: 'gend',position: 110 }]
+    @UI.lineItem: [{ position: 110,importance: #HIGH  }]
+ pin;
+   @UI.fieldGroup: [{ qualifier: 'gend',position: 120 }]
+    @UI.lineItem: [{ position: 120,importance: #HIGH  }]
+   @Consumption.valueHelpDefinition: [{ entity:{element: 'text',name: 'ZUNE_CDS_STATEGST' } }]
+  stcd;
     @UI.fieldGroup: [{ qualifier: 'addrd',position: 10 }]
     //@UI.lineItem: [{ position: 10,importance: #HIGH  }]
     Createdby;
